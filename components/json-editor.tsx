@@ -16,6 +16,17 @@ interface JsonEditorProps {
   onChange: (value: any) => void
 }
 
+// 定义预订项的接口
+interface ReservationItem {
+  username: string;
+  password: string;
+  time: string[];
+  roomid: string;
+  seatid: string[];
+  daysofweek: string[];
+  [key: string]: any;
+}
+
 const DAYS_OF_WEEK = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
 
 const TIME_OPTIONS = [
@@ -40,7 +51,7 @@ export function JsonEditor({ value, onChange }: JsonEditorProps) {
   const [activeTab, setActiveTab] = useState("reserve")
   const { t } = useLanguage()
 
-  const handleReserveChange = (reserve: any[]) => {
+  const handleReserveChange = (reserve: ReservationItem[]) => {
     const formattedReserve = reserve.flatMap(item => {
       if (!item.daysofweek || item.daysofweek.length <= 1) {
         return [item];
@@ -58,10 +69,10 @@ export function JsonEditor({ value, onChange }: JsonEditorProps) {
   const getReserveData = () => {
     const originalReserve = value?.reserve || [];
     
-    const mergedReserve: any[] = [];
-    const groupedItems: {[key: string]: any} = {};
+    const mergedReserve: ReservationItem[] = [];
+    const groupedItems: {[key: string]: ReservationItem} = {};
     
-    originalReserve.forEach(item => {
+    originalReserve.forEach((item: ReservationItem) => {
       const key = `${item.username}-${item.password}-${item.roomid}-${item.time.join(',')}-${item.seatid.join(',')}`;
       
       if (!groupedItems[key]) {
@@ -103,8 +114,8 @@ export function JsonEditor({ value, onChange }: JsonEditorProps) {
 }
 
 interface ReservationEditorProps {
-  value: any[]
-  onChange: (value: any[]) => void
+  value: ReservationItem[]
+  onChange: (value: ReservationItem[]) => void
 }
 
 function ReservationEditor({ value, onChange }: ReservationEditorProps) {
@@ -190,8 +201,8 @@ function ReservationEditor({ value, onChange }: ReservationEditorProps) {
 }
 
 interface ReservationItemProps {
-  reservation: any
-  onChange: (updated: any) => void
+  reservation: ReservationItem
+  onChange: (updated: ReservationItem) => void
   onRemove: () => void
   index: number
 }
