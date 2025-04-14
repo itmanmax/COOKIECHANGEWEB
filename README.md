@@ -134,8 +134,8 @@ pnpm start
 
 系统支持两个外部更新API：
 
-- MAX更新API: https://home.maxtral.fun/plugin/updatadate/api.php
-- ZZW更新API: http://homezzw.maxtral.fun/updatadata/api.php
+- MAX更新API: 
+- ZZW更新API: 
 
 这些API通过Next.js API路由代理调用，以避免浏览器的CORS限制。
 

@@ -40,7 +40,8 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
   }, [language])
 
   const t = (key: string): string => {
-    return translations[language]?.[key] || key
+    const currentTranslations = translations[language] || {};
+    return key in currentTranslations ? currentTranslations[key] : key;
   }
 
   return (

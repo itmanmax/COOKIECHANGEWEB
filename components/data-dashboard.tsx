@@ -132,7 +132,7 @@ export function DataDashboard() {
             <Sparkles className="h-12 w-12 text-[#0071e3] dark:text-[#0077ED]" />
           </div>
           <h3 className="text-xl font-medium text-gray-700 dark:text-gray-300 mb-2">{t("no-data")}</h3>
-          <p className="text-gray-500 dark:text-gray-400 mb-6">{t("create-first")}</p>
+          <p className="text-gray-500 dark:text-gray-400 mb-6">{t("create-first-data")}</p>
           <Button
             onClick={() => setIsCreateModalOpen(true)}
             className="bg-[#0071e3] hover:bg-[#0077ED] text-white dark:bg-[#0077ED] dark:hover:bg-[#0071e3]"

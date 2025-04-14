@@ -1,4 +1,32 @@
-export const translations = {
+// 定义翻译键的类型
+export type TranslationKey = 
+  | "data-management" | "data-entries" | "refresh" | "create-new" | "create-new-entry"
+  | "welcome" | "enter-password" | "password" | "login" | "incorrect-password"
+  | "created" | "updated" | "json-data" | "cookie-data" | "edit-data" | "view-full"
+  | "create-data" | "data-id" | "enter-id" | "visual-editor" | "raw-json" | "cancel" 
+  | "creating" | "updating" | "update-data" | "are-you-sure" | "delete-confirm"
+  | "cannot-undo" | "delete" | "deleting" | "reservation-data" | "other-properties"
+  | "reservation-schedule" | "add-reservation" | "no-reservations" | "add-first"
+  | "reservation" | "username" | "password" | "room-id" | "time-range" | "seat-ids" 
+  | "add-seat" | "days-of-week" | "new-property-key" | "value" | "drag-drop" | "or"
+  | "choose-file" | "cookie-placeholder" | "no-data" | "create-first" | "light-mode"
+  | "dark-mode" | "create-data-description" | "edit-data-description" | "view-json-desc"
+  | "view-cookie-desc" | "english" | "chinese";
+
+// 定义翻译记录的类型，包含索引签名
+export type TranslationRecord = Record<TranslationKey, string> & {
+  [key: string]: string;
+};
+
+// 导出翻译对象类型，支持字符串索引
+export interface TranslationsType {
+  [language: string]: {
+    [key: string]: string;
+  };
+}
+
+// 导出翻译对象
+export const translations: TranslationsType = {
   en: {
     // Header
     "data-management": "Data Management",
@@ -19,12 +47,12 @@ export const translations = {
     updated: "Updated",
     "json-data": "JSON Data",
     "cookie-data": "Cookie Data",
-    "edit-data": "Edit Data",
+    "edit-data-btn": "Edit Data",
     "view-full": "View Full",
 
     // Modals
     "create-data": "Create New Data",
-    "edit-data": "Edit Data",
+    "edit-data-title": "Edit Data",
     "data-id": "Data ID",
     "enter-id": "Enter a unique identifier",
     "visual-editor": "Visual Editor",
@@ -47,10 +75,10 @@ export const translations = {
     "reservation-schedule": "Reservation Schedule",
     "add-reservation": "Add Reservation",
     "no-reservations": "No reservations added yet",
-    "add-first": "Add your first reservation",
+    "add-first-reservation": "Add your first reservation",
     reservation: "Reservation",
     username: "Username",
-    password: "Password",
+    "password-field": "Password",
     "room-id": "Room ID",
     "time-range": "Time Range",
     "seat-ids": "Seat IDs",
@@ -67,7 +95,7 @@ export const translations = {
 
     // Empty States
     "no-data": "No data entries found",
-    "create-first": "Create your first data entry to get started.",
+    "create-first-data": "Create your first data entry to get started.",
 
     // Theme
     "light-mode": "Light Mode",
@@ -103,12 +131,12 @@ export const translations = {
     updated: "更新于",
     "json-data": "JSON 数据",
     "cookie-data": "Cookie 数据",
-    "edit-data": "编辑数据",
+    "edit-data-btn": "编辑数据",
     "view-full": "查看全部",
 
     // 模态框
     "create-data": "创建新数据",
-    "edit-data": "编辑数据",
+    "edit-data-title": "编辑数据",
     "data-id": "数据 ID",
     "enter-id": "输入唯一标识符",
     "visual-editor": "可视化编辑器",
@@ -131,10 +159,10 @@ export const translations = {
     "reservation-schedule": "预约计划",
     "add-reservation": "添加预约",
     "no-reservations": "暂无预约",
-    "add-first": "添加您的第一个预约",
+    "add-first-reservation": "添加您的第一个预约",
     reservation: "预约",
     username: "用户名",
-    password: "密码",
+    "password-field": "密码",
     "room-id": "房间 ID",
     "time-range": "时间范围",
     "seat-ids": "座位 ID",
@@ -151,7 +179,7 @@ export const translations = {
 
     // 空状态
     "no-data": "未找到数据条目",
-    "create-first": "创建您的第一个数据条目以开始。",
+    "create-first-data": "创建您的第一个数据条目以开始。",
 
     // 主题
     "light-mode": "浅色模式",

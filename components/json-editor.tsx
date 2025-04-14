@@ -174,7 +174,7 @@ function ReservationEditor({ value, onChange }: ReservationEditorProps) {
           >
             <p className="text-gray-500 dark:text-gray-400">{t("no-reservations")}</p>
             <Button variant="link" onClick={addReservation} className="text-[#0071e3] dark:text-[#5ac8fa] mt-2">
-              {t("add-first")}
+              {t("add-first-reservation")}
             </Button>
           </motion.div>
         ) : (
@@ -274,7 +274,7 @@ function ReservationItem({ reservation, onChange, onRemove, index }: Reservation
           </div>
           <div>
             <Label htmlFor={`password-${index}`} className="text-sm">
-              {t("password")}
+              {t("password-field")}
             </Label>
             <Input
               id={`password-${index}`}

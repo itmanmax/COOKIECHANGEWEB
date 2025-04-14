@@ -190,7 +190,7 @@ export function DataItem({ data, onUpdate, onDelete }: DataItemProps) {
               onClick={() => setIsEditModalOpen(true)}
             >
               <Edit className="h-4 w-4 mr-2" />
-              {t("edit-data")}
+              {t("edit-data-btn")}
             </Button>
           </CardFooter>
         )}

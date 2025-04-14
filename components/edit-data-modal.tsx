@@ -13,7 +13,7 @@ import { JsonEditor } from "@/components/json-editor"
 import { CookieEditor } from "@/components/cookie-editor"
 import { updateData } from "@/lib/api"
 import { useLanguage } from "@/components/language-provider"
-import { X } from "lucide-react"
+import { X, Edit } from "lucide-react"
 import { transformReservationFormat } from "@/lib/utils"
 
 const daysOfWeekEnum = z.enum([
@@ -137,8 +137,9 @@ export function EditDataModal({ isOpen, onClose, data, onDataUpdated }: EditData
         </button>
 
         <DialogHeader className="p-6 pb-2 pl-12">
-          <DialogTitle className="text-xl font-semibold flex items-center">
-            <span className="mr-2">🔧</span> {t("edit-data")}{" "}
+          <DialogTitle className="flex items-center text-xl">
+            <Edit className="mr-2 h-5 w-5 text-gray-500" />
+            {t("edit-data-title")}{" "}
             <span className="text-[#0071e3] dark:text-[#5ac8fa] ml-1">{data.id}</span>
           </DialogTitle>
           <DialogDescription className="text-left text-sm text-muted-foreground pt-1 pl-8">
