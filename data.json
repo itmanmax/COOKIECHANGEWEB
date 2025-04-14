@@ -1,0 +1,60 @@
+{
+    "reserve": [
+      {
+        "username": "22111303163",
+        "password": "xiaokE123456.",
+        "time": ["15:00", "22:00"],
+        "roomid": "10973",
+        "seatid": ["030", "026", "027"],
+        "daysofweek": ["Monday"]
+      },
+      {
+        "username": "22111303163",
+        "password": "xiaokE123456.",
+        "time": ["15:00", "22:00"],
+        "roomid": "10973",
+        "seatid": ["030", "026", "027"],
+        "daysofweek": ["Tuesday"]
+      },
+      {
+        "username": "22111303163",
+        "password": "xiaokE123456.",
+        "time": ["19:00", "22:00"],
+        "roomid": "10973",
+        "seatid": ["030", "026", "027"],
+        "daysofweek": ["Wednesday"]
+      },
+      {
+        "username": "22111303163",
+        "password": "xiaokE123456.",
+        "time": ["17:00", "22:00"],
+        "roomid": "10973",
+        "seatid": ["030", "026", "027"],
+        "daysofweek": ["Thursday"]
+      },
+      {
+        "username": "22111303163",
+        "password": "xiaokE123456.",
+        "time": ["09:00", "22:00"],
+        "roomid": "10973",
+        "seatid": ["030", "026", "027"],
+        "daysofweek": ["Friday"]
+      },
+      {
+        "username": "22111303163",
+        "password": "xiaokE123456.",
+        "time": ["09:00", "22:00"],
+        "roomid": "10973",
+        "seatid": ["030", "026", "027"],
+        "daysofweek": ["Saturday"]
+      },
+      {
+        "username": "22111303163",
+        "password": "xiaokE123456.",
+        "time": ["09:00", "22:00"],
+        "roomid": "10973",
+        "seatid": ["030", "026", "027"],
+        "daysofweek": ["Sunday"]
+      }
+    ]
+  }
