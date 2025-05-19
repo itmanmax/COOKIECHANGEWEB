@@ -164,15 +164,17 @@ export function EditDataModal({ isOpen, onClose, data, onDataUpdated }: EditData
               </Label>
               <Textarea
                 id="raw-json"
-                value={JSON.stringify(jsonData, null, 2)}
+                defaultValue={JSON.stringify(jsonData, null, 2)}
                 onChange={(e) => {
                   try {
-                    setJsonData(JSON.parse(e.target.value))
+                    const parsed = JSON.parse(e.target.value);
+                    setJsonData(parsed);
                   } catch (error) {
                     // Allow invalid JSON during editing
+                    console.log("JSON解析错误，继续编辑");
                   }
                 }}
-                placeholder="Enter JSON data"
+                placeholder="输入JSON数据"
                 className="font-mono text-sm mt-1 min-h-[200px] dark:bg-gray-700 dark:border-gray-600"
               />
             </TabsContent>

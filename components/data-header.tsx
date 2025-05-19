@@ -5,7 +5,7 @@ import { useEffect, useState } from "react"
 import { useTheme } from "@/components/theme-provider"
 import { useLanguage } from "@/components/language-provider"
 import { Button } from "@/components/ui/button"
-import { Moon, Sun, Globe, RefreshCw, Bell, Info } from "lucide-react"
+import { Moon, Sun, Globe, Bell, Info } from "lucide-react"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { useToast } from "@/hooks/use-toast"
 import { 
@@ -17,6 +17,8 @@ import {
   DialogFooter,
   DialogClose
 } from "@/components/ui/dialog"
+import { UpdateButtons } from "@/components/update-buttons"
+import { fetchConfig } from "@/lib/api"
 
 export function DataHeader() {
   const [scrolled, setScrolled] = useState(false)
@@ -24,14 +26,12 @@ export function DataHeader() {
   const { language, setLanguage, t } = useLanguage()
   const { toast } = useToast()
   const [infoDialogOpen, setInfoDialogOpen] = useState(false)
-  const [isLoading, setIsLoading] = useState({
-    max: false,
-    zzw: false
+  const [notificationConfig, setNotificationConfig] = useState({
+    enabled: true,
+    noticeDays: 14,
+    qmsgKey: '未设置',
+    qqNumber: '未设置'
   })
-
-  // 获取环境变量
-  const qqNumber = process.env.NEXT_PUBLIC_QQ_NUMBER || '未设置'
-  const qmsgKey = process.env.NEXT_PUBLIC_QMSG_KEY || '未设置'
 
   useEffect(() => {
     const handleScroll = () => {
@@ -42,71 +42,26 @@ export function DataHeader() {
     return () => window.removeEventListener("scroll", handleScroll)
   }, [])
 
-  // 调用MAX更新接口
-  const callMaxUpdateAPI = async () => {
-    try {
-      setIsLoading(prev => ({ ...prev, max: true }))
-      // 使用本地API路由作为代理，避免CORS问题
-      const response = await fetch('/api/update-max')
-      
-      if (!response.ok) {
-        throw new Error('更新失败')
+  // 获取配置信息
+  useEffect(() => {
+    async function getConfigData() {
+      try {
+        const config = await fetchConfig()
+        if (config.notification) {
+          setNotificationConfig({
+            enabled: config.notification.enabled,
+            noticeDays: config.notification.noticeDays,
+            qmsgKey: config.notification.qmsgKeySet || '未设置',
+            qqNumber: config.notification.qqNumber || '未设置'
+          })
+        }
+      } catch (error) {
+        console.error('获取配置信息失败:', error)
       }
-      
-      const data = await response.json()
-      
-      if (data.success) {
-        toast({
-          title: "MAX更新成功",
-          description: data.message || "MAX数据已成功更新",
-        })
-      } else {
-        throw new Error(data.message || '更新失败')
-      }
-    } catch (error) {
-      console.error('MAX更新错误:', error)
-      toast({
-        title: "更新失败",
-        description: error instanceof Error ? error.message : "MAX数据更新失败，请稍后重试",
-        variant: "destructive"
-      })
-    } finally {
-      setIsLoading(prev => ({ ...prev, max: false }))
     }
-  }
-
-  // 调用ZZW更新接口
-  const callZZWUpdateAPI = async () => {
-    try {
-      setIsLoading(prev => ({ ...prev, zzw: true }))
-      // 使用本地API路由作为代理，避免CORS问题
-      const response = await fetch('/api/update-zzw')
-      
-      if (!response.ok) {
-        throw new Error('更新失败')
-      }
-      
-      const data = await response.json()
-      
-      if (data.success) {
-        toast({
-          title: "ZZW更新成功",
-          description: data.message || "ZZW数据已成功更新",
-        })
-      } else {
-        throw new Error(data.message || '更新失败')
-      }
-    } catch (error) {
-      console.error('ZZW更新错误:', error)
-      toast({
-        title: "更新失败",
-        description: error instanceof Error ? error.message : "ZZW数据更新失败，请稍后重试",
-        variant: "destructive"
-      })
-    } finally {
-      setIsLoading(prev => ({ ...prev, zzw: false }))
-    }
-  }
+    
+    getConfigData()
+  }, [])
 
   return (
     <motion.div
@@ -140,29 +95,8 @@ export function DataHeader() {
             <Info className="h-3.5 w-3.5 mr-1" /> 通知设置
           </Button>
 
-          {/* MAX更新按钮 */}
-          <Button 
-            variant="outline" 
-            size="sm" 
-            className="h-8 px-2 text-xs border-green-500/30 text-green-600 dark:text-green-400"
-            onClick={callMaxUpdateAPI}
-            disabled={isLoading.max}
-          >
-            <RefreshCw className={`h-3.5 w-3.5 mr-1 ${isLoading.max ? 'animate-spin' : ''}`} /> 
-            {isLoading.max ? '更新中...' : 'MAX更新'}
-          </Button>
-
-          {/* ZZW更新按钮 */}
-          <Button 
-            variant="outline" 
-            size="sm" 
-            className="h-8 px-2 text-xs border-purple-500/30 text-purple-600 dark:text-purple-400"
-            onClick={callZZWUpdateAPI}
-            disabled={isLoading.zzw}
-          >
-            <RefreshCw className={`h-3.5 w-3.5 mr-1 ${isLoading.zzw ? 'animate-spin' : ''}`} /> 
-            {isLoading.zzw ? '更新中...' : 'ZZW更新'}
-          </Button>
+          {/* 动态生成的更新按钮 */}
+          <UpdateButtons />
         </div>
 
         <div className="flex items-center gap-2">
@@ -206,30 +140,41 @@ export function DataHeader() {
               通知设置信息
             </DialogTitle>
             <DialogDescription className="dark:text-gray-400">
-              当前配置的QQ通知相关信息
+              当前配置的通知相关信息（从config.json读取）
             </DialogDescription>
           </DialogHeader>
           
           <div className="space-y-4 py-4">
             <div className="grid grid-cols-3 gap-2 items-center">
+              <span className="font-medium text-sm">通知开关：</span>
+              <span className={`col-span-2 bg-gray-100 dark:bg-gray-700 p-2 rounded text-sm break-all ${notificationConfig.enabled ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                {notificationConfig.enabled ? '已启用' : '已禁用'}
+              </span>
+            </div>
+            
+            <div className="grid grid-cols-3 gap-2 items-center">
               <span className="font-medium text-sm">QQ号码：</span>
               <span className="col-span-2 bg-gray-100 dark:bg-gray-700 p-2 rounded text-sm break-all">
-                {qqNumber}
+                {notificationConfig.qqNumber}
               </span>
             </div>
             
             <div className="grid grid-cols-3 gap-2 items-center">
               <span className="font-medium text-sm">消息密钥：</span>
               <span className="col-span-2 bg-gray-100 dark:bg-gray-700 p-2 rounded text-sm break-all">
-                {qmsgKey.substring(0, 6)}...{qmsgKey.substring(qmsgKey.length - 6)}
+                {notificationConfig.qmsgKey}
               </span>
             </div>
             
             <div className="grid grid-cols-3 gap-2 items-center">
               <span className="font-medium text-sm">提醒天数：</span>
               <span className="col-span-2 bg-gray-100 dark:bg-gray-700 p-2 rounded text-sm">
-                {process.env.NEXT_PUBLIC_NOTICE_DAYS || '14'} 天
+                {notificationConfig.noticeDays} 天
               </span>
+            </div>
+
+            <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-md text-sm text-blue-700 dark:text-blue-300 mt-4">
+              <p>修改通知配置请直接编辑服务器上的 <code>config.json</code> 文件</p>
             </div>
           </div>
           

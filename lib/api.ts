@@ -1,6 +1,73 @@
 const API_BASE_URL = "https://editdata.maxtral.online"
 const AUTH_TOKEN = "041129"
 
+// 获取配置信息
+export async function fetchConfig() {
+  try {
+    const response = await fetch('/api/get-config');
+    if (!response.ok) {
+      throw new Error(`获取配置失败: ${response.statusText}`);
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('获取配置时出错:', error);
+    // 返回默认配置
+    return {
+      notification: {
+        enabled: true,
+        noticeDays: 14
+      },
+      updateMode: 'easyStack'
+    };
+  }
+}
+
+// 获取所有可用的更新类型
+export async function getUpdateTypes() {
+  try {
+    const response = await fetch('/api/update-data', {
+      method: 'POST'
+    });
+    if (!response.ok) {
+      throw new Error(`获取更新类型失败: ${response.statusText}`);
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('获取更新类型时出错:', error);
+    return { types: [], defaultType: null };
+  }
+}
+
+// 调用特定类型的更新API
+export async function updateDataByType(type: string) {
+  try {
+    const response = await fetch(`/api/update-data?type=${encodeURIComponent(type)}`);
+    if (!response.ok) {
+      throw new Error(`更新数据失败: ${response.statusText}`);
+    }
+    return await response.json();
+  } catch (error) {
+    console.error(`更新${type}数据时出错:`, error);
+    throw error;
+  }
+}
+
+// 调用统一更新API (用于兼容旧代码)
+export async function updateDataByConfig() {
+  try {
+    // 先获取默认的更新类型
+    const { defaultType } = await getUpdateTypes();
+    if (!defaultType) {
+      throw new Error('未找到默认更新类型');
+    }
+    // 使用默认类型调用更新API
+    return await updateDataByType(defaultType);
+  } catch (error) {
+    console.error('更新数据时出错:', error);
+    throw error;
+  }
+}
+
 export async function fetchDataList() {
   const response = await fetch(`${API_BASE_URL}/admin/list`, {
     headers: {

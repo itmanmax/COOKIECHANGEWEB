@@ -1,24 +1,56 @@
 import { NextResponse } from 'next/server';
+import fs from 'fs';
+import path from 'path';
 
 export async function GET() {
   try {
-    // 从服务器端发起请求不受CORS限制
-    const response = await fetch('http://homezzw.maxtral.fun/updatadata/api.php', {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+    // 读取配置文件
+    const configPath = path.join(process.cwd(), 'config.json');
+    const configData = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+    const apiUrls = configData.updateAPI.zzw;
+    
+    // 检查是否存在URL
+    if (!apiUrls || apiUrls.length === 0) {
+      throw new Error('未找到ZZW更新API的URL配置');
+    }
+    
+    const results = [];
+    
+    // 调用所有API端点
+    for (const apiUrl of apiUrls) {
+      try {
+        const response = await fetch(apiUrl, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+        
+        const data = await response.json();
+        results.push({
+          url: apiUrl,
+          success: true,
+          data: data
+        });
+      } catch (error: any) {
+        console.error(`调用ZZW API ${apiUrl} 出错:`, error);
+        results.push({
+          url: apiUrl,
+          success: false,
+          error: error.message || '未知错误'
+        });
+      }
+    }
+    
+    // 返回所有结果
+    return NextResponse.json({
+      success: results.some(r => r.success),
+      results: results
     });
-
-    // 获取响应数据
-    const data = await response.json();
-
-    // 返回成功响应
-    return NextResponse.json(data);
-  } catch (error) {
+  } catch (error: any) {
     console.error('更新ZZW数据时出错:', error);
     return NextResponse.json(
-      { success: false, message: '更新失败，请稍后重试' },
+      { success: false, message: '更新失败，请稍后重试', error: error.message || '未知错误' },
       { status: 500 }
     );
   }

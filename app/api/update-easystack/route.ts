@@ -7,11 +7,11 @@ export async function GET() {
     // 读取配置文件
     const configPath = path.join(process.cwd(), 'config.json');
     const configData = JSON.parse(fs.readFileSync(configPath, 'utf8'));
-    const apiUrls = configData.updateAPI.max;
+    const apiUrls = configData.updateAPI.test;
     
     // 检查是否存在URL
     if (!apiUrls || apiUrls.length === 0) {
-      throw new Error('未找到MAX更新API的URL配置');
+      throw new Error('未找到测试更新API的URL配置');
     }
     
     const results = [];
@@ -33,7 +33,7 @@ export async function GET() {
           data: data
         });
       } catch (error: any) {
-        console.error(`调用MAX API ${apiUrl} 出错:`, error);
+        console.error(`调用测试 API ${apiUrl} 出错:`, error);
         results.push({
           url: apiUrl,
           success: false,
@@ -48,7 +48,7 @@ export async function GET() {
       results: results
     });
   } catch (error: any) {
-    console.error('更新MAX数据时出错:', error);
+    console.error('更新测试数据时出错:', error);
     return NextResponse.json(
       { success: false, message: '更新失败，请稍后重试', error: error.message || '未知错误' },
       { status: 500 }
