@@ -1,6 +1,4 @@
 import { NextResponse } from 'next/server';
-import fs from 'fs';
-import path from 'path';
 
 // 更新指定类型的数据
 export async function GET(request: Request) {
@@ -14,6 +12,10 @@ export async function GET(request: Request) {
         { status: 400 }
       );
     }
+
+    // 动态导入fs和path模块
+    const fs = await import('fs');
+    const path = await import('path');
 
     // 读取配置文件
     const configPath = path.join(process.cwd(), 'config.json');
@@ -83,6 +85,10 @@ export async function GET(request: Request) {
 // 获取所有可用的更新类型
 export async function POST() {
   try {
+    // 动态导入fs和path模块
+    const fs = await import('fs');
+    const path = await import('path');
+    
     // 读取配置文件
     const configPath = path.join(process.cwd(), 'config.json');
     const configData = JSON.parse(fs.readFileSync(configPath, 'utf8'));

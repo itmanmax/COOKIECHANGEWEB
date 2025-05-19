@@ -47,9 +47,12 @@ export function DataDashboard() {
       setDataList(data)
       
       // 检查每条数据的更新时间，如果超过指定天数则发送通知
-      data.forEach((item: DataEntry) => {
-        checkAndSendUpdateNotice(item.id, item.created_at, item.updated_at);
-      });
+      // 使用Promise.all等待所有异步通知检查完成
+      await Promise.all(
+        data.map(async (item: DataEntry) => {
+          await checkAndSendUpdateNotice(item.id, item.created_at, item.updated_at);
+        })
+      );
     } catch (error) {
       toast({
         title: "Error loading data",
@@ -103,7 +106,7 @@ export function DataDashboard() {
             variant="outline"
             size="sm"
             className="flex items-center gap-2 dark:border-gray-700 dark:text-gray-300"
-            onClick={loadData}
+            onClick={() => loadData()}
             disabled={isRefreshing}
           >
             <RefreshCw className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`} />

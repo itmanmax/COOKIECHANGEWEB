@@ -1,35 +1,79 @@
 /**
  * 通知服务模块 - 用于发送数据更新提醒
  */
-import fs from 'fs';
-import path from 'path';
 
-// 读取配置文件
-function getConfig() {
-  try {
-    // 确保在服务器端执行
-    if (typeof window === 'undefined') {
-      const configPath = path.join(process.cwd(), 'config.json');
-      const configData = JSON.parse(fs.readFileSync(configPath, 'utf8'));
-      return configData.notification;
-    } else {
-      // 如果在客户端，可以通过API获取配置
-      // 简单起见这里返回默认值，实际项目中可以实现一个API接口获取配置
-      return {
-        enabled: true,
-        noticeDays: 14,
-        qmsgKey: '',
-        qqNumber: ''
-      };
+// 声明一个获取配置的接口类型
+interface NotificationConfig {
+  enabled: boolean;
+  noticeDays: number;
+  qmsgKey: string;
+  qqNumber: string;
+}
+
+// 默认配置
+const defaultConfig: NotificationConfig = {
+  enabled: true,
+  noticeDays: 14,
+  qmsgKey: '',
+  qqNumber: ''
+};
+
+// 客户端配置缓存
+let clientConfigCache: NotificationConfig | null = null;
+
+// 读取配置文件 - 区分服务器端和客户端
+async function getConfig(): Promise<NotificationConfig> {
+  // 如果在浏览器环境中运行
+  if (typeof window !== 'undefined') {
+    // 如果有缓存配置，直接返回
+    if (clientConfigCache) {
+      return clientConfigCache;
     }
-  } catch (error) {
-    console.error('读取配置文件失败:', error);
-    return {
-      enabled: false,
-      noticeDays: 14,
-      qmsgKey: '',
-      qqNumber: ''
-    };
+    
+    try {
+      // 从API获取配置
+      const response = await fetch('/api/get-config');
+      if (!response.ok) {
+        throw new Error('获取配置失败');
+      }
+      
+      const data = await response.json();
+      // 提取通知配置信息
+      const config: NotificationConfig = {
+        enabled: data.notification?.enabled ?? defaultConfig.enabled,
+        noticeDays: data.notification?.noticeDays ?? defaultConfig.noticeDays,
+        qmsgKey: data.notification?.qmsgKey ?? defaultConfig.qmsgKey,
+        qqNumber: data.notification?.qqNumber ?? defaultConfig.qqNumber
+      };
+      
+      // 缓存配置
+      clientConfigCache = config;
+      return config;
+    } catch (error) {
+      console.error('获取配置信息失败:', error);
+      return defaultConfig;
+    }
+  } 
+  // 服务器端环境
+  else {
+    try {
+      // 服务器端动态导入fs和path模块
+      const { readFileSync } = await import('fs');
+      const { join } = await import('path');
+      
+      const configPath = join(process.cwd(), 'config.json');
+      const configData = JSON.parse(readFileSync(configPath, 'utf8'));
+      
+      return {
+        enabled: configData.notification.enabled ?? defaultConfig.enabled,
+        noticeDays: configData.notification.noticeDays ?? defaultConfig.noticeDays,
+        qmsgKey: configData.notification.qmsgKey ?? defaultConfig.qmsgKey,
+        qqNumber: configData.notification.qqNumber ?? defaultConfig.qqNumber
+      };
+    } catch (error) {
+      console.error('读取配置文件失败:', error);
+      return defaultConfig;
+    }
   }
 }
 
@@ -41,8 +85,8 @@ export function daysBetween(date1: Date, date2: Date): number {
 }
 
 // 检查数据是否需要发送更新提醒
-export function shouldSendNotice(createdAt: string, updatedAt?: string): boolean {
-  const config = getConfig();
+export async function shouldSendNotice(createdAt: string, updatedAt?: string): Promise<boolean> {
+  const config = await getConfig();
   
   // 如果通知功能未启用，直接返回false
   if (!config.enabled) {
@@ -58,7 +102,7 @@ export function shouldSendNotice(createdAt: string, updatedAt?: string): boolean
 
 // 发送QMsg通知
 export async function sendQMsgNotice(dataId: string, daysSinceUpdate: number): Promise<boolean> {
-  const config = getConfig();
+  const config = await getConfig();
   
   // 如果通知功能未启用或配置不完整，返回false
   if (!config.enabled || !config.qmsgKey || !config.qqNumber) {
@@ -87,7 +131,7 @@ export async function sendQMsgNotice(dataId: string, daysSinceUpdate: number): P
 
 // 检查并发送数据更新提醒
 export async function checkAndSendUpdateNotice(dataId: string, createdAt: string, updatedAt?: string): Promise<void> {
-  const config = getConfig();
+  const config = await getConfig();
   
   // 如果通知功能未启用，直接返回
   if (!config.enabled) {

@@ -1,9 +1,11 @@
 import { NextResponse } from 'next/server';
-import fs from 'fs';
-import path from 'path';
 
 export async function GET() {
   try {
+    // 动态导入fs和path模块
+    const fs = await import('fs');
+    const path = await import('path');
+    
     // 读取配置文件
     const configPath = path.join(process.cwd(), 'config.json');
     const configData = JSON.parse(fs.readFileSync(configPath, 'utf8'));
