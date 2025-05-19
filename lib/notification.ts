@@ -23,8 +23,11 @@ let clientConfigCache: NotificationConfig | null = null;
 
 // 读取配置文件 - 区分服务器端和客户端
 async function getConfig(): Promise<NotificationConfig> {
-  // 如果在浏览器环境中运行
-  if (typeof window !== 'undefined') {
+  // 检查是否在浏览器环境中运行
+  const isBrowser = typeof window !== 'undefined';
+  
+  // 客户端环境处理
+  if (isBrowser) {
     // 如果有缓存配置，直接返回
     if (clientConfigCache) {
       return clientConfigCache;
@@ -54,22 +57,52 @@ async function getConfig(): Promise<NotificationConfig> {
       return defaultConfig;
     }
   } 
-  // 服务器端环境
+  // 服务器端环境处理
   else {
     try {
-      // 服务器端动态导入fs和path模块
-      const { readFileSync } = await import('fs');
-      const { join } = await import('path');
+      // 首先尝试从public目录获取配置
+      try {
+        const baseUrl = process.env.VERCEL_URL 
+          ? `https://${process.env.VERCEL_URL}` 
+          : process.env.NEXT_PUBLIC_VERCEL_URL
+            ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`
+            : 'http://localhost:3000';
+            
+        const configResponse = await fetch(new URL('/vercel.config.json', baseUrl));
+        
+        if (configResponse.ok) {
+          const data = await configResponse.json();
+          return {
+            enabled: data.notification?.enabled ?? defaultConfig.enabled,
+            noticeDays: data.notification?.noticeDays ?? defaultConfig.noticeDays,
+            qmsgKey: data.notification?.qmsgKey ?? defaultConfig.qmsgKey,
+            qqNumber: data.notification?.qqNumber ?? defaultConfig.qqNumber
+          };
+        }
+      } catch (fetchError) {
+        console.log('无法从public目录获取配置:', fetchError);
+        // 继续尝试使用fs
+      }
       
-      const configPath = join(process.cwd(), 'config.json');
-      const configData = JSON.parse(readFileSync(configPath, 'utf8'));
+      // 如果无法通过fetch获取，尝试使用fs
+      if (process.env.NODE_ENV !== 'production') {
+        // 服务器端动态导入fs和path模块
+        const { readFileSync } = await import('fs');
+        const { join } = await import('path');
+        
+        const configPath = join(process.cwd(), 'config.json');
+        const configData = JSON.parse(readFileSync(configPath, 'utf8'));
+        
+        return {
+          enabled: configData.notification?.enabled ?? defaultConfig.enabled,
+          noticeDays: configData.notification?.noticeDays ?? defaultConfig.noticeDays,
+          qmsgKey: configData.notification?.qmsgKey ?? defaultConfig.qmsgKey,
+          qqNumber: configData.notification?.qqNumber ?? defaultConfig.qqNumber
+        };
+      }
       
-      return {
-        enabled: configData.notification.enabled ?? defaultConfig.enabled,
-        noticeDays: configData.notification.noticeDays ?? defaultConfig.noticeDays,
-        qmsgKey: configData.notification.qmsgKey ?? defaultConfig.qmsgKey,
-        qqNumber: configData.notification.qqNumber ?? defaultConfig.qqNumber
-      };
+      // 生产环境下，如果前面的方法都失败，使用默认配置
+      return defaultConfig;
     } catch (error) {
       console.error('读取配置文件失败:', error);
       return defaultConfig;
@@ -77,27 +110,31 @@ async function getConfig(): Promise<NotificationConfig> {
   }
 }
 
-// 计算日期差异（天数）
-export function daysBetween(date1: Date, date2: Date): number {
-  const oneDay = 24 * 60 * 60 * 1000; // 一天的毫秒数
-  const diffTime = Math.abs(date2.getTime() - date1.getTime());
-  return Math.floor(diffTime / oneDay);
+// 计算两个日期之间的天数差异
+export function daysBetween(date1: string | Date, date2: string | Date = new Date()): number {
+  const d1 = typeof date1 === 'string' ? new Date(date1) : date1;
+  const d2 = typeof date2 === 'string' ? new Date(date2) : date2;
+  
+  // 转换为UTC时间戳，消除时区差异
+  const utc1 = Date.UTC(d1.getFullYear(), d1.getMonth(), d1.getDate());
+  const utc2 = Date.UTC(d2.getFullYear(), d2.getMonth(), d2.getDate());
+  
+  // 计算天数差异 (毫秒转天)
+  const MS_PER_DAY = 1000 * 60 * 60 * 24;
+  return Math.floor((utc2 - utc1) / MS_PER_DAY);
 }
 
-// 检查数据是否需要发送更新提醒
-export async function shouldSendNotice(createdAt: string, updatedAt?: string): Promise<boolean> {
+// 检查是否需要发送通知
+export async function shouldSendNotice(lastUpdatedDate: string): Promise<boolean> {
   const config = await getConfig();
   
-  // 如果通知功能未启用，直接返回false
+  // 如果通知功能未启用，返回false
   if (!config.enabled) {
     return false;
   }
   
-  const now = new Date();
-  const lastUpdateDate = updatedAt ? new Date(updatedAt) : new Date(createdAt);
-  const daysSinceLastUpdate = daysBetween(lastUpdateDate, now);
-  
-  return daysSinceLastUpdate >= config.noticeDays;
+  const daysSinceUpdate = daysBetween(lastUpdatedDate);
+  return daysSinceUpdate >= config.noticeDays;
 }
 
 // 发送QMsg通知

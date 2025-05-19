@@ -186,7 +186,7 @@ export function CreateDataModal({ isOpen, onClose, onDataCreated }: CreateDataMo
               </Label>
               <Textarea
                 id="raw-json"
-                value={JSON.stringify(jsonData, null, 2)}
+                defaultValue={JSON.stringify(jsonData, null, 2)}
                 onChange={(e) => {
                   try {
                     setJsonData(JSON.parse(e.target.value))

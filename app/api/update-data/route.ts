@@ -1,5 +1,62 @@
 import { NextResponse } from 'next/server';
 
+// 默认配置，当无法读取配置文件时使用
+const defaultConfig = {
+  updateAPI: {
+    max: [
+      "https://home.maxtral.fun/plugin/updatadate/api.php"
+    ],
+    zzw: [
+      "http://homezzw.maxtral.fun/updatadata/api.php"
+    ]
+  },
+  updateMode: "max"
+};
+
+// 辅助函数：获取配置数据
+async function getConfigData() {
+  try {
+    // 1. 首先尝试从public目录获取配置文件
+    const baseUrl = process.env.VERCEL_URL 
+      ? `https://${process.env.VERCEL_URL}` 
+      : process.env.NEXT_PUBLIC_VERCEL_URL
+        ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`
+        : 'http://localhost:3000';
+        
+    const configResponse = await fetch(new URL('/vercel.config.json', baseUrl), {
+      cache: 'no-store' // 禁用缓存，确保每次获取最新配置
+    });
+    
+    if (configResponse.ok) {
+      const data = await configResponse.json();
+      console.log('从public目录成功读取配置');
+      return data;
+    }
+  } catch (error) {
+    console.error('从public目录获取配置失败:', error);
+  }
+  
+  // 2. 如果无法从public目录获取，尝试使用fs读取（仅在非生产环境）
+  if (typeof window === 'undefined' && process.env.NODE_ENV !== 'production') {
+    try {
+      // 动态导入fs和path模块
+      const fs = await import('fs');
+      const path = await import('path');
+      
+      const configPath = path.join(process.cwd(), 'config.json');
+      const configData = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+      console.log('从文件系统成功读取配置');
+      return configData;
+    } catch (fsError) {
+      console.error('读取本地配置文件失败:', fsError);
+    }
+  }
+  
+  // 3. 都失败则返回默认配置
+  console.log('使用默认配置');
+  return defaultConfig;
+}
+
 // 更新指定类型的数据
 export async function GET(request: Request) {
   try {
@@ -13,13 +70,8 @@ export async function GET(request: Request) {
       );
     }
 
-    // 动态导入fs和path模块
-    const fs = await import('fs');
-    const path = await import('path');
-
-    // 读取配置文件
-    const configPath = path.join(process.cwd(), 'config.json');
-    const configData = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+    // 获取配置数据
+    const configData = await getConfigData();
     
     // 检查是否存在指定类型的更新配置
     if (!configData.updateAPI || !configData.updateAPI[type]) {
@@ -49,6 +101,7 @@ export async function GET(request: Request) {
           headers: {
             'Content-Type': 'application/json',
           },
+          next: { revalidate: 0 } // 禁用缓存，确保获取最新数据
         });
         
         const data = await response.json();
@@ -85,13 +138,8 @@ export async function GET(request: Request) {
 // 获取所有可用的更新类型
 export async function POST() {
   try {
-    // 动态导入fs和path模块
-    const fs = await import('fs');
-    const path = await import('path');
-    
-    // 读取配置文件
-    const configPath = path.join(process.cwd(), 'config.json');
-    const configData = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+    // 获取配置数据
+    const configData = await getConfigData();
     
     // 如果没有更新API配置，返回空数组
     if (!configData.updateAPI) {

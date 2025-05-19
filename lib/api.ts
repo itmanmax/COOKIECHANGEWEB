@@ -4,7 +4,10 @@ const AUTH_TOKEN = "041129"
 // 获取配置信息
 export async function fetchConfig() {
   try {
-    const response = await fetch('/api/get-config');
+    const response = await fetch('/api/get-config', { 
+      cache: 'no-store', // 禁用缓存
+      next: { revalidate: 0 } // 确保每次都获取最新配置
+    });
     if (!response.ok) {
       throw new Error(`获取配置失败: ${response.statusText}`);
     }
@@ -15,9 +18,12 @@ export async function fetchConfig() {
     return {
       notification: {
         enabled: true,
-        noticeDays: 14
+        noticeDays: 14,
+        qqNumber: '未设置',
+        qmsgKeySet: '未设置'
       },
-      updateMode: 'easyStack'
+      updateTypes: ['max', 'zzw'],
+      updateMode: 'max'
     };
   }
 }
@@ -26,7 +32,9 @@ export async function fetchConfig() {
 export async function getUpdateTypes() {
   try {
     const response = await fetch('/api/update-data', {
-      method: 'POST'
+      method: 'POST',
+      cache: 'no-store',
+      next: { revalidate: 0 }
     });
     if (!response.ok) {
       throw new Error(`获取更新类型失败: ${response.statusText}`);
@@ -41,7 +49,10 @@ export async function getUpdateTypes() {
 // 调用特定类型的更新API
 export async function updateDataByType(type: string) {
   try {
-    const response = await fetch(`/api/update-data?type=${encodeURIComponent(type)}`);
+    const response = await fetch(`/api/update-data?type=${encodeURIComponent(type)}`, {
+      cache: 'no-store',
+      next: { revalidate: 0 }
+    });
     if (!response.ok) {
       throw new Error(`更新数据失败: ${response.statusText}`);
     }

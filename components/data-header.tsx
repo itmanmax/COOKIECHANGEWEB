@@ -57,11 +57,16 @@ export function DataHeader() {
         }
       } catch (error) {
         console.error('获取配置信息失败:', error)
+        toast({
+          title: "获取配置失败",
+          description: "无法加载通知设置信息",
+          variant: "destructive",
+        })
       }
     }
     
     getConfigData()
-  }, [])
+  }, [toast])
 
   return (
     <motion.div
