@@ -45,44 +45,60 @@ export async function getUpdateTypes() {
 // 调用特定类型的更新API
 export async function updateDataByType(type: string) {
   try {
-    const apiUrls = appConfigData.updateAPI[type as keyof typeof appConfigData.updateAPI];
-    if (!apiUrls || apiUrls.length === 0) {
+    const apiUrlsConfig = appConfigData.updateAPI[type as keyof typeof appConfigData.updateAPI];
+    if (!apiUrlsConfig || apiUrlsConfig.length === 0) {
       throw new Error(`未找到类型 '${type}' 的 API 配置或 URL 列表为空`);
     }
 
     const results = [];
     let success = false;
 
-    for (const apiUrl of apiUrls) {
+    for (let i = 0; i < apiUrlsConfig.length; i++) {
+      const originalUrl = apiUrlsConfig[i];
+      let requestUrl = originalUrl;
+
+      // 如果是 HTTP URL，则构建代理URL
+      if (originalUrl.startsWith('http://')) {
+        requestUrl = `/api/proxy/${encodeURIComponent(type)}/${i}`;
+        console.log(`[API Lib] HTTP URL detected. Using proxy: ${requestUrl} for original: ${originalUrl}`);
+      } else if (originalUrl.startsWith('https://')) {
+        console.log(`[API Lib] HTTPS URL detected. Calling directly: ${originalUrl}`);
+      } else {
+        console.warn(`[API Lib] Invalid URL format for type '${type}', index '${i}': ${originalUrl}. Skipping.`);
+        results.push({ url: originalUrl, status: 'error', error: 'Invalid URL format' });
+        continue;
+      }
+
       try {
-        console.log(`正在调用 API: ${apiUrl} (类型: ${type})`);
-        const response = await fetch(apiUrl, {
+        console.log(`正在调用 API: ${requestUrl} (类型: ${type}, 原始: ${originalUrl})`);
+        const response = await fetch(requestUrl, {
           cache: 'no-store',
           next: { revalidate: 0 }
+          // 对于代理请求，方法、头部和主体将由代理路由处理
+          // 对于直接的HTTPS请求，如果需要特定方法/头部/主体，需要在这里添加
         });
-        // 注意：这里的成功/失败逻辑可能需要根据实际 API 的响应来调整
-        // 假设 API 返回 2xx 表示成功
+
         if (response.ok) {
-          const resultData = await response.json(); // 尝试解析 JSON
-          console.log(`API ${apiUrl} 调用成功，响应:`, resultData);
-          results.push({ url: apiUrl, status: 'success', data: resultData });
-          success = true; // 只要有一个成功就算成功
+          const resultData = await response.json();
+          console.log(`API ${requestUrl} 调用成功，响应:`, resultData);
+          results.push({ url: originalUrl, proxiedUrl: requestUrl, status: 'success', data: resultData });
+          success = true;
         } else {
           const errorText = await response.text();
-          console.error(`API ${apiUrl} 调用失败: ${response.status} ${response.statusText}`, errorText);
-          results.push({ url: apiUrl, status: 'failed', error: `${response.status} ${response.statusText}`, responseBody: errorText });
+          console.error(`API ${requestUrl} 调用失败: ${response.status} ${response.statusText}`, errorText);
+          results.push({ url: originalUrl, proxiedUrl: requestUrl, status: 'failed', error: `${response.status} ${response.statusText}`, responseBody: errorText });
         }
       } catch (e) {
         const errorMessage = e instanceof Error ? e.message : String(e);
-        console.error(`调用 API ${apiUrl} 时发生网络错误或解析错误:`, errorMessage);
-        results.push({ url: apiUrl, status: 'error', error: errorMessage });
+        console.error(`调用 API ${requestUrl} 时发生网络错误或解析错误:`, errorMessage);
+        results.push({ url: originalUrl, proxiedUrl: requestUrl, status: 'error', error: errorMessage });
       }
     }
 
-    return { success, results }; // 返回所有 API 调用的结果
+    return { success, results };
   } catch (error) {
     console.error(`更新${type}数据时出错:`, error);
-    throw error; // 将错误重新抛出，让调用者处理
+    throw error;
   }
 }
 
