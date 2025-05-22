@@ -28,9 +28,9 @@ function getTargetUrl(type: string, idx: number): string | undefined {
 
 async function handler(
   req: NextRequest,
-  { params }: { params: { type: string; index: string } }
+  context: { params: { type: string; index: string } }
 ) {
-  const { type, index: indexStr } = params;
+  const { type, index: indexStr } = context.params;
   const index = parseInt(indexStr, 10);
 
   if (isNaN(index)) {
