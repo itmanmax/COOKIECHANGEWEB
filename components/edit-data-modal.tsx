@@ -127,7 +127,7 @@ export function EditDataModal({ isOpen, onClose, data, onDataUpdated }: EditData
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="w-full max-w-4xl p-0 overflow-hidden dark:bg-gray-800 dark:text-white max-h-[90vh] overflow-y-auto">
+      <DialogContent className="w-full max-w-6xl p-0 overflow-hidden dark:bg-gray-800 dark:text-white max-h-[90vh] overflow-y-auto">
         <button
           onClick={handleClose}
           className="absolute left-4 top-4 rounded-full p-1 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
