@@ -57,14 +57,15 @@ export async function updateDataByType(type: string) {
       const originalUrl = apiUrlsConfig[i];
       let requestUrl = originalUrl;
 
-      // 如果是 HTTP URL，则构建代理URL
+      // 如果是 HTTP URL，则使用简单代理
       if (originalUrl.startsWith('http://')) {
-        requestUrl = `/api/proxy/${encodeURIComponent(type)}/${i}`;
-        console.log(`[API Lib] HTTP URL detected. Using proxy: ${requestUrl} for original: ${originalUrl}`);
+        // 使用简单代理 /api/http-proxy?url=原始URL
+        requestUrl = `/api/http-proxy?url=${encodeURIComponent(originalUrl)}`;
+        console.log(`[API Lib] HTTP URL检测到。使用简单代理: ${requestUrl}`);
       } else if (originalUrl.startsWith('https://')) {
-        console.log(`[API Lib] HTTPS URL detected. Calling directly: ${originalUrl}`);
+        console.log(`[API Lib] HTTPS URL检测到。直接调用: ${originalUrl}`);
       } else {
-        console.warn(`[API Lib] Invalid URL format for type '${type}', index '${i}': ${originalUrl}. Skipping.`);
+        console.warn(`[API Lib] 类型 '${type}'，索引 '${i}' 的URL格式无效: ${originalUrl}。跳过。`);
         results.push({ url: originalUrl, status: 'error', error: 'Invalid URL format' });
         continue;
       }
@@ -74,8 +75,6 @@ export async function updateDataByType(type: string) {
         const response = await fetch(requestUrl, {
           cache: 'no-store',
           next: { revalidate: 0 }
-          // 对于代理请求，方法、头部和主体将由代理路由处理
-          // 对于直接的HTTPS请求，如果需要特定方法/头部/主体，需要在这里添加
         });
 
         if (response.ok) {
