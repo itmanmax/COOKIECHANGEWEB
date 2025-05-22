@@ -1,7 +1,11 @@
-import { NextResponse, NextRequest } from 'next/server';
+import { NextResponse } from 'next/server';
 import appConfigData from '../../../../../app.config.json';
 
 const API_CATEGORY = 'max'; // 特定于此文件的API类别
+
+type RouteParams = {
+  index: string;
+};
 
 // Helper to get URL from app.config.json for the specific category
 function getTargetUrl(idx: number): string | undefined {
@@ -30,8 +34,8 @@ function getTargetUrl(idx: number): string | undefined {
 
 // Shared logic for handling the proxy request
 async function handleProxyRequest(
-  req: NextRequest,
-  { params }: { params: { index: string } } // 'type' is no longer a param here
+  req: Request,
+  { params }: { params: RouteParams }
 ) {
   const { index: indexStr } = params;
   const index = parseInt(indexStr, 10);
@@ -87,24 +91,24 @@ async function handleProxyRequest(
 }
 
 // Explicit HTTP method exports
-export async function GET(request: NextRequest, { params }: { params: { index: string } }) {
+export async function GET(request: Request, { params }: { params: RouteParams }) {
   return handleProxyRequest(request, { params });
 }
-export async function POST(request: NextRequest, { params }: { params: { index: string } }) {
+export async function POST(request: Request, { params }: { params: RouteParams }) {
   return handleProxyRequest(request, { params });
 }
-export async function PUT(request: NextRequest, { params }: { params: { index: string } }) {
+export async function PUT(request: Request, { params }: { params: RouteParams }) {
   return handleProxyRequest(request, { params });
 }
-export async function DELETE(request: NextRequest, { params }: { params: { index: string } }) {
+export async function DELETE(request: Request, { params }: { params: RouteParams }) {
   return handleProxyRequest(request, { params });
 }
-export async function PATCH(request: NextRequest, { params }: { params: { index: string } }) {
+export async function PATCH(request: Request, { params }: { params: RouteParams }) {
   return handleProxyRequest(request, { params });
 }
-export async function OPTIONS(request: NextRequest, { params }: { params: { index: string } }) {
+export async function OPTIONS(request: Request, { params }: { params: RouteParams }) {
   return handleProxyRequest(request, { params });
 }
-export async function HEAD(request: NextRequest, { params }: { params: { index: string } }) {
+export async function HEAD(request: Request, { params }: { params: RouteParams }) {
   return handleProxyRequest(request, { params });
 } 
