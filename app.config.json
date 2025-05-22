@@ -1,0 +1,27 @@
+{
+    "notification": {
+      "enabled": true,
+      "noticeDays": 14,
+      "qmsgKey": "your_qmsg_key_here",
+      "qqNumber": "your_qq_number_here"
+    },
+    "updateAPI": {
+      "max": [
+        "https://home.maxtral.fun/plugin/updatadate/api.php",
+        "https://home.maxtral.fun/plugin/updatadate/api.php"
+      ],
+      "zzw": [
+        "http://homezzw.maxtral.fun/updatadata/api.php",
+        "http://homezzw.maxtral.fun/updatadata/api.php"
+      ],
+      "test1": [
+        "https://api.example.com/easystack/update",
+        "https://api.example.com/easystack/update"
+      ],
+      "test2": [
+        "https://api.example.com/easystack/update",
+        "https://api.example.com/easystack/update"
+      ]
+    },
+    "updateMode": "easyStack"
+  } 

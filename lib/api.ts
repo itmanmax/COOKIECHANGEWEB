@@ -1,3 +1,5 @@
+import appConfigData from "../app.config.json"; // 导入配置文件
+
 const API_BASE_URL = "https://editdata.maxtral.online"
 const AUTH_TOKEN = "041129"
 
@@ -14,16 +16,14 @@ export async function fetchConfig() {
     return await response.json();
   } catch (error) {
     console.error('获取配置时出错:', error);
-    // 返回默认配置
+    // 返回默认配置 - 移除了 updateTypes 和 updateMode
     return {
       notification: {
         enabled: true,
         noticeDays: 14,
         qqNumber: '未设置',
         qmsgKeySet: '未设置'
-      },
-      updateTypes: ['max', 'zzw'],
-      updateMode: 'max'
+      }
     };
   }
 }
@@ -31,15 +31,11 @@ export async function fetchConfig() {
 // 获取所有可用的更新类型
 export async function getUpdateTypes() {
   try {
-    const response = await fetch('/api/update-data', {
-      method: 'POST',
-      cache: 'no-store',
-      next: { revalidate: 0 }
-    });
-    if (!response.ok) {
-      throw new Error(`获取更新类型失败: ${response.statusText}`);
-    }
-    return await response.json();
+    // 直接从导入的配置中获取类型
+    const updateTypes = Object.keys(appConfigData.updateAPI);
+    // 将 updateMode 作为默认类型，如果它有效的话
+    const defaultType = updateTypes.includes(appConfigData.updateMode) ? appConfigData.updateMode : (updateTypes.length > 0 ? updateTypes[0] : null);
+    return { types: updateTypes, defaultType: defaultType };
   } catch (error) {
     console.error('获取更新类型时出错:', error);
     return { types: [], defaultType: null };
@@ -49,17 +45,44 @@ export async function getUpdateTypes() {
 // 调用特定类型的更新API
 export async function updateDataByType(type: string) {
   try {
-    const response = await fetch(`/api/update-data?type=${encodeURIComponent(type)}`, {
-      cache: 'no-store',
-      next: { revalidate: 0 }
-    });
-    if (!response.ok) {
-      throw new Error(`更新数据失败: ${response.statusText}`);
+    const apiUrls = appConfigData.updateAPI[type as keyof typeof appConfigData.updateAPI];
+    if (!apiUrls || apiUrls.length === 0) {
+      throw new Error(`未找到类型 '${type}' 的 API 配置或 URL 列表为空`);
     }
-    return await response.json();
+
+    const results = [];
+    let success = false;
+
+    for (const apiUrl of apiUrls) {
+      try {
+        console.log(`正在调用 API: ${apiUrl} (类型: ${type})`);
+        const response = await fetch(apiUrl, {
+          cache: 'no-store',
+          next: { revalidate: 0 }
+        });
+        // 注意：这里的成功/失败逻辑可能需要根据实际 API 的响应来调整
+        // 假设 API 返回 2xx 表示成功
+        if (response.ok) {
+          const resultData = await response.json(); // 尝试解析 JSON
+          console.log(`API ${apiUrl} 调用成功，响应:`, resultData);
+          results.push({ url: apiUrl, status: 'success', data: resultData });
+          success = true; // 只要有一个成功就算成功
+        } else {
+          const errorText = await response.text();
+          console.error(`API ${apiUrl} 调用失败: ${response.status} ${response.statusText}`, errorText);
+          results.push({ url: apiUrl, status: 'failed', error: `${response.status} ${response.statusText}`, responseBody: errorText });
+        }
+      } catch (e) {
+        const errorMessage = e instanceof Error ? e.message : String(e);
+        console.error(`调用 API ${apiUrl} 时发生网络错误或解析错误:`, errorMessage);
+        results.push({ url: apiUrl, status: 'error', error: errorMessage });
+      }
+    }
+
+    return { success, results }; // 返回所有 API 调用的结果
   } catch (error) {
     console.error(`更新${type}数据时出错:`, error);
-    throw error;
+    throw error; // 将错误重新抛出，让调用者处理
   }
 }
 
