@@ -26,7 +26,8 @@ function getTargetUrl(type: string, idx: number): string | undefined {
   return undefined;
 }
 
-async function handler(
+// Shared logic for handling the proxy request
+async function handleProxyRequest(
   req: NextRequest,
   context: { params: { type: string; index: string } }
 ) {
@@ -86,4 +87,34 @@ async function handler(
   }
 }
 
-export { handler as GET, handler as POST, handler as PUT, handler as DELETE, handler as PATCH, handler as OPTIONS, handler as HEAD }; 
+// Explicit HTTP method exports
+export async function GET(request: NextRequest, context: { params: { type: string; index: string } }) {
+  return handleProxyRequest(request, context);
+}
+
+export async function POST(request: NextRequest, context: { params: { type: string; index: string } }) {
+  return handleProxyRequest(request, context);
+}
+
+export async function PUT(request: NextRequest, context: { params: { type: string; index: string } }) {
+  return handleProxyRequest(request, context);
+}
+
+export async function DELETE(request: NextRequest, context: { params: { type: string; index: string } }) {
+  return handleProxyRequest(request, context);
+}
+
+export async function PATCH(request: NextRequest, context: { params: { type: string; index: string } }) {
+  return handleProxyRequest(request, context);
+}
+
+export async function OPTIONS(request: NextRequest, context: { params: { type: string; index: string } }) {
+  // For OPTIONS, we might want to return a simple 204 No Content or specific CORS headers
+  // if the proxied service doesn't handle OPTIONS well or if we want to control CORS at the proxy level.
+  // However, for now, let's try forwarding it. If issues arise, this can be adjusted.
+  return handleProxyRequest(request, context);
+}
+
+export async function HEAD(request: NextRequest, context: { params: { type: string; index: string } }) {
+  return handleProxyRequest(request, context);
+} 
