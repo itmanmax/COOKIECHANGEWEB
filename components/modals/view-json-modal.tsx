@@ -3,7 +3,7 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { useLanguage } from "@/components/language-provider"
 import { X } from "lucide-react"
-import { JsonViewer } from "@/components/json-viewer"
+import { JsonViewer } from "@/components/data/json-viewer"
 
 interface ViewJsonModalProps {
   isOpen: boolean

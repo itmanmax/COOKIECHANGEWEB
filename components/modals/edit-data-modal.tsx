@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { z } from "zod"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -8,9 +8,9 @@ import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { useToast } from "@/hooks/use-toast"
-import type { DataEntry } from "@/components/data-dashboard"
-import { JsonEditor } from "@/components/json-editor"
-import { CookieEditor } from "@/components/cookie-editor"
+import type { DataEntry } from "@/components/dashboard/data-dashboard"
+import { JsonEditor } from "@/components/data/json-editor"
+import { CookieEditor } from "@/components/data/cookie-editor"
 import { updateData } from "@/lib/api"
 import { useLanguage } from "@/components/language-provider"
 import { X, Edit } from "lucide-react"
@@ -62,35 +62,52 @@ const testJsonSchema = z
 interface EditDataModalProps {
   isOpen: boolean
   onClose: () => void
-  data: DataEntry
+  data: DataEntry | null
   onDataUpdated: (data: DataEntry) => void
 }
 
 export function EditDataModal({ isOpen, onClose, data, onDataUpdated }: EditDataModalProps) {
-  const [jsonData, setJsonData] = useState<any>(data.testjson)
-  const [cookieData, setCookieData] = useState(data.cookie)
+  const [jsonData, setJsonData] = useState<any>(data?.testjson || { reserve: [] })
+  const [cookieData, setCookieData] = useState(data?.cookie || "")
   const [isSubmitting, setIsSubmitting] = useState(false)
   const { toast } = useToast()
   const { t } = useLanguage()
 
+  useEffect(() => {
+    if (data) {
+      setJsonData(data.testjson)
+      setCookieData(data.cookie)
+    } else {
+      setJsonData({ reserve: [] });
+      setCookieData("");
+    }
+  }, [data])
+
   const resetForm = () => {
+    if (data) {
     setJsonData(data.testjson)
     setCookieData(data.cookie)
+    } else {
+        setJsonData({ reserve: [] });
+        setCookieData("");
+    }
   }
 
   const handleClose = () => {
-    resetForm()
     onClose()
   }
 
   const handleSubmit = async () => {
+    if (!data) {
+      toast({ title: "Error", description: "No data to update.", variant: "destructive" });
+      return;
+    }
     console.log("更新按钮被点击...");
     
     try {
       setIsSubmitting(true);
       console.log("正在调用API更新数据...", data.id);
       
-      // 直接使用当前的JSON数据，不做复杂验证
       await updateData(data.id, {
         testjson: jsonData,
         cookie: cookieData || "default_cookie",
@@ -98,14 +115,14 @@ export function EditDataModal({ isOpen, onClose, data, onDataUpdated }: EditData
       
       console.log("API调用成功，数据已更新");
 
-      const updatedData: DataEntry = {
+      const updatedDataEntry: DataEntry = {
         ...data,
         testjson: jsonData,
         cookie: cookieData,
         updated_at: new Date().toISOString(),
       };
 
-      onDataUpdated(updatedData);
+      onDataUpdated(updatedDataEntry);
 
       toast({
         title: "数据更新成功",
@@ -124,6 +141,8 @@ export function EditDataModal({ isOpen, onClose, data, onDataUpdated }: EditData
       setIsSubmitting(false);
     }
   };
+  
+  if (!isOpen || !data) return null;
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
@@ -164,14 +183,14 @@ export function EditDataModal({ isOpen, onClose, data, onDataUpdated }: EditData
               </Label>
               <Textarea
                 id="raw-json"
+                key={data.id}
                 defaultValue={JSON.stringify(jsonData, null, 2)}
-                onChange={(e) => {
+                onBlur={(e) => {
                   try {
                     const parsed = JSON.parse(e.target.value);
                     setJsonData(parsed);
                   } catch (error) {
-                    // Allow invalid JSON during editing
-                    console.log("JSON解析错误，继续编辑");
+                    console.log("JSON解析错误，Textarea内容可能无效，但允许用户继续编辑");
                   }
                 }}
                 placeholder="输入JSON数据"

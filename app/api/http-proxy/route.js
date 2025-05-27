@@ -10,8 +10,8 @@ async function proxyRequest(request) {
     return NextResponse.json({ error: '缺少目标URL参数' }, { status: 400 });
   }
 
-  if (!targetUrl.startsWith('http://')) {
-    return NextResponse.json({ error: '仅支持代理HTTP URL，HTTPS URL应该直接请求' }, { status: 400 });
+  if (!targetUrl.startsWith('http://') && !targetUrl.startsWith('https://')) {
+    return NextResponse.json({ error: '仅支持代理HTTP和HTTPS URL' }, { status: 400 });
   }
 
   try {

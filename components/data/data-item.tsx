@@ -8,11 +8,11 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
-import type { DataEntry } from "@/components/data-dashboard"
-import { EditDataModal } from "@/components/edit-data-modal"
-import { DeleteConfirmDialog } from "@/components/delete-confirm-dialog"
-import { ViewJsonModal } from "@/components/view-json-modal"
-import { ViewCookieModal } from "@/components/view-cookie-modal"
+import type { DataEntry } from "@/components/dashboard/data-dashboard"
+import { EditDataModal } from "@/components/modals/edit-data-modal"
+import { DeleteConfirmDialog } from "@/components/modals/delete-confirm-dialog"
+import { ViewJsonModal } from "@/components/modals/view-json-modal"
+import { ViewCookieModal } from "@/components/modals/view-cookie-modal"
 import { cn } from "@/lib/utils"
 import { useLanguage } from "@/components/language-provider"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
@@ -76,7 +76,7 @@ export function DataItem({ data, onUpdate, onDelete }: DataItemProps) {
               )}
               <TooltipProvider>
                 <Tooltip>
-                  <TooltipTrigger asChild>
+                  <TooltipTrigger>
                     <span className={cn(
                       "text-sm flex items-center rounded-md px-2 py-1",
                       isPastNotice 
@@ -131,8 +131,8 @@ export function DataItem({ data, onUpdate, onDelete }: DataItemProps) {
 
         {isExpanded && (
           <CardContent className="p-4 pt-0">
-            <Separator className="my-4 dark:bg-gray-700" />
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Separator /> 
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-4">
               <div>
                 <div className="flex justify-between items-center mb-2">
                   <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 flex items-center">

@@ -60,15 +60,15 @@ async function getConfig(): Promise<NotificationConfig> {
   // 服务器端环境处理
   else {
     try {
-      // 首先尝试从public目录获取配置
+      // 在服务器端也从 API 获取配置，避免使用 fs
+      const baseUrl = process.env.VERCEL_URL 
+        ? `https://${process.env.VERCEL_URL}` 
+        : process.env.NEXT_PUBLIC_VERCEL_URL
+          ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`
+          : 'http://localhost:3000';
+
       try {
-        const baseUrl = process.env.VERCEL_URL 
-          ? `https://${process.env.VERCEL_URL}` 
-          : process.env.NEXT_PUBLIC_VERCEL_URL
-            ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`
-            : 'http://localhost:3000';
-            
-        const configResponse = await fetch(new URL('/vercel.config.json', baseUrl));
+        const configResponse = await fetch(`${baseUrl}/api/get-config`);
         
         if (configResponse.ok) {
           const data = await configResponse.json();
@@ -80,28 +80,10 @@ async function getConfig(): Promise<NotificationConfig> {
           };
         }
       } catch (fetchError) {
-        console.log('无法从public目录获取配置:', fetchError);
-        // 继续尝试使用fs
+        console.error('服务器端获取配置失败:', fetchError);
       }
       
-      // 如果无法通过fetch获取，尝试使用fs
-      if (process.env.NODE_ENV !== 'production') {
-        // 服务器端动态导入fs和path模块
-        const { readFileSync } = await import('fs');
-        const { join } = await import('path');
-        
-        const configPath = join(process.cwd(), 'config.json');
-        const configData = JSON.parse(readFileSync(configPath, 'utf8'));
-        
-        return {
-          enabled: configData.notification?.enabled ?? defaultConfig.enabled,
-          noticeDays: configData.notification?.noticeDays ?? defaultConfig.noticeDays,
-          qmsgKey: configData.notification?.qmsgKey ?? defaultConfig.qmsgKey,
-          qqNumber: configData.notification?.qqNumber ?? defaultConfig.qqNumber
-        };
-      }
-      
-      // 生产环境下，如果前面的方法都失败，使用默认配置
+      // 如果从 API 获取失败，返回默认配置
       return defaultConfig;
     } catch (error) {
       console.error('读取配置文件失败:', error);
@@ -148,10 +130,11 @@ export async function sendQMsgNotice(dataId: string, daysSinceUpdate: number): P
   }
 
   try {
+    // 使用内部 API 代理来解决 CORS 问题
     const message = encodeURIComponent(`数据提醒：ID为 ${dataId} 的数据已有 ${daysSinceUpdate} 天未更新，请检查！`);
-    const url = `https://home.maxtral.fun/qmasgnotice/notice.php?qmsg_key=${config.qmsgKey}&qq_number=${config.qqNumber}&send_qmsg=${message}`;
     
-    const response = await fetch(url);
+    // 使用我们自己的代理 API
+    const response = await fetch(`/api/http-proxy?url=https://home.maxtral.fun/qmasgnotice/notice.php&qmsg_key=${config.qmsgKey}&qq_number=${config.qqNumber}&send_qmsg=${message}`);
     
     if (!response.ok) {
       throw new Error(`通知发送失败: ${response.statusText}`);

@@ -11,7 +11,10 @@ export type TranslationKey =
   | "add-seat" | "days-of-week" | "new-property-key" | "value" | "drag-drop" | "or"
   | "choose-file" | "cookie-placeholder" | "no-data" | "create-first" | "light-mode"
   | "dark-mode" | "create-data-description" | "edit-data-description" | "view-json-desc"
-  | "view-cookie-desc" | "english" | "chinese";
+  | "view-cookie-desc" | "english" | "chinese" | "select-user" | "select-user-description"
+  | "no-users-found" | "back-to-users" | "user-dashboard" | "logout" | "reservations"
+  | "no-reservations-for-day" | "add-reservation-for-day" | "select-day-to-view"
+  | "user-has-no-data" | "no-data-available" | "error-loading-data" | "could-not-fetch-user-data";
 
 // 定义翻译记录的类型，包含索引签名
 export type TranslationRecord = Record<TranslationKey, string> & {
@@ -110,6 +113,24 @@ export const translations: TranslationsType = {
     // Language
     english: "English",
     chinese: "中文",
+    
+    // User Selection
+    "select-user": "Select User",
+    "select-user-description": "Choose a user to manage their data",
+    "no-users-found": "No users found",
+    "back-to-users": "Back to Users",
+    "user-dashboard": "User Dashboard",
+    "logout": "Logout",
+    
+    // 新增的预约分组翻译
+    "reservations": "Reservations",
+    "no-reservations-for-day": "No reservations for {day}",
+    "add-reservation-for-day": "Add reservation for {day}",
+    "select-day-to-view": "Select a day to view or edit reservations",
+    "user-has-no-data": "This user has no data records",
+    "no-data-available": "No Data Available",
+    "error-loading-data": "Error Loading Data",
+    "could-not-fetch-user-data": "Could not fetch user data"
   },
   zh: {
     // 页眉
@@ -194,5 +215,23 @@ export const translations: TranslationsType = {
     // Language
     english: "English",
     chinese: "中文",
+    
+    // 用户选择
+    "select-user": "选择用户",
+    "select-user-description": "选择要管理的用户数据",
+    "no-users-found": "未找到用户",
+    "back-to-users": "返回用户列表",
+    "user-dashboard": "用户仪表盘",
+    "logout": "退出登录",
+    
+    // 新增的预约分组翻译
+    "reservations": "预约记录",
+    "no-reservations-for-day": "{day}没有预约记录",
+    "add-reservation-for-day": "添加{day}的预约",
+    "select-day-to-view": "选择一天查看或编辑预约",
+    "user-has-no-data": "该用户没有数据记录",
+    "no-data-available": "没有可用数据",
+    "error-loading-data": "加载数据出错",
+    "could-not-fetch-user-data": "无法获取用户数据"
   },
 }

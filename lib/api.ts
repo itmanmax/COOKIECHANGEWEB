@@ -57,13 +57,11 @@ export async function updateDataByType(type: string) {
       const originalUrl = apiUrlsConfig[i];
       let requestUrl = originalUrl;
 
-      // 如果是 HTTP URL，则使用简单代理
-      if (originalUrl.startsWith('http://')) {
-        // 使用简单代理 /api/http-proxy?url=原始URL
+      // 对所有 HTTP/HTTPS URL 都使用代理
+      if (originalUrl.startsWith('http://') || originalUrl.startsWith('https://')) {
+        // 使用通用代理 /api/http-proxy?url=原始URL
         requestUrl = `/api/http-proxy?url=${encodeURIComponent(originalUrl)}`;
-        console.log(`[API Lib] HTTP URL检测到。使用简单代理: ${requestUrl}`);
-      } else if (originalUrl.startsWith('https://')) {
-        console.log(`[API Lib] HTTPS URL检测到。直接调用: ${originalUrl}`);
+        console.log(`[API Lib] ${originalUrl.startsWith('https://') ? 'HTTPS' : 'HTTP'} URL检测到。使用通用代理: ${requestUrl}`);
       } else {
         console.warn(`[API Lib] 类型 '${type}'，索引 '${i}' 的URL格式无效: ${originalUrl}。跳过。`);
         results.push({ url: originalUrl, status: 'error', error: 'Invalid URL format' });
@@ -73,6 +71,12 @@ export async function updateDataByType(type: string) {
       try {
         console.log(`正在调用 API: ${requestUrl} (类型: ${type}, 原始: ${originalUrl})`);
         const response = await fetch(requestUrl, {
+          method: 'GET', // 默认使用 GET 方法
+          headers: {
+            'User-Agent': 'data-management-app',
+            'Accept': 'application/json, text/plain, */*',
+            ...(typeof window !== 'undefined' ? { 'Origin': window.location.origin } : {})
+          },
           cache: 'no-store',
           next: { revalidate: 0 }
         });
@@ -133,13 +137,32 @@ export async function fetchDataList() {
 }
 
 export async function fetchDataById(id: string) {
-  const response = await fetch(`${API_BASE_URL}/api/${AUTH_TOKEN}/${id}`)
+  console.log(`正在获取用户数据，ID: ${id}, URL: ${API_BASE_URL}/api/${AUTH_TOKEN}/${id}`);
+  
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/${AUTH_TOKEN}/${id}`, {
+      headers: {
+        'Accept': 'application/json',
+        'Cache-Control': 'no-cache'
+      },
+      cache: 'no-store'
+    });
 
-  if (!response.ok) {
-    throw new Error(`Failed to fetch data: ${response.statusText}`)
+    console.log(`获取用户数据响应状态: ${response.status} ${response.statusText}`);
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`获取用户数据失败: ${response.status} ${response.statusText}`, errorText);
+      throw new Error(`获取用户数据失败: ${response.statusText} (${response.status})`);
+    }
+
+    const result = await response.json();
+    console.log(`获取用户数据成功:`, result);
+    return result;
+  } catch (error) {
+    console.error(`获取用户数据时出现异常:`, error);
+    throw error;
   }
-
-  return response.json()
 }
 
 export async function createData(data: {

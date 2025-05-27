@@ -29,6 +29,17 @@ interface ReservationItem {
 
 const DAYS_OF_WEEK = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
 
+// 添加中文星期映射
+const DAY_TRANSLATIONS: { [key: string]: string } = {
+  "Monday": "星期一",
+  "Tuesday": "星期二",
+  "Wednesday": "星期三",
+  "Thursday": "星期四",
+  "Friday": "星期五",
+  "Saturday": "星期六",
+  "Sunday": "星期日"
+}
+
 const TIME_OPTIONS = [
   "08:00", "08:30",
   "09:00", "09:30",
@@ -52,45 +63,12 @@ export function JsonEditor({ value, onChange }: JsonEditorProps) {
   const { t } = useLanguage()
 
   const handleReserveChange = (reserve: ReservationItem[]) => {
-    const formattedReserve = reserve.flatMap(item => {
-      if (!item.daysofweek || item.daysofweek.length <= 1) {
-        return [item];
-      }
-      
-      return item.daysofweek.map((day: string) => ({
-        ...item,
-        daysofweek: [day]
-      }));
-    });
-    
-    onChange({ ...value, reserve: formattedReserve });
+    // 直接使用传入的数据，不进行转换
+    onChange({ ...value, reserve });
   }
 
   const getReserveData = () => {
-    const originalReserve = value?.reserve || [];
-    
-    const mergedReserve: ReservationItem[] = [];
-    const groupedItems: {[key: string]: ReservationItem} = {};
-    
-    originalReserve.forEach((item: ReservationItem) => {
-      const key = `${item.username}-${item.password}-${item.roomid}-${item.time.join(',')}-${item.seatid.join(',')}`;
-      
-      if (!groupedItems[key]) {
-        groupedItems[key] = {
-          ...item,
-          daysofweek: [...item.daysofweek]
-        };
-        mergedReserve.push(groupedItems[key]);
-      } else {
-        item.daysofweek.forEach((day: string) => {
-          if (!groupedItems[key].daysofweek.includes(day)) {
-            groupedItems[key].daysofweek.push(day);
-          }
-        });
-      }
-    });
-    
-    return mergedReserve;
+    return value?.reserve || [];
   }
 
   return (
@@ -120,8 +98,24 @@ interface ReservationEditorProps {
 
 function ReservationEditor({ value, onChange }: ReservationEditorProps) {
   const { t } = useLanguage()
+  // 当前选中的星期
+  const [selectedDay, setSelectedDay] = useState<string | null>(null)
 
+  // 按星期分组预约信息
+  const reservationsByDay = DAYS_OF_WEEK.reduce<Record<string, ReservationItem[]>>((acc, day) => {
+    acc[day] = value.filter(item => item.daysofweek.includes(day));
+    return acc;
+  }, {});
+
+  // 获取特定星期的预约
+  const getReservationsForDay = (day: string) => {
+    return reservationsByDay[day] || [];
+  };
+
+  // 添加新预约到当前选中的星期
   const addReservation = () => {
+    const day = selectedDay || DAYS_OF_WEEK[0];
+    
     onChange([
       ...value,
       {
@@ -130,26 +124,52 @@ function ReservationEditor({ value, onChange }: ReservationEditorProps) {
         time: ["09:00", "22:00"],
         roomid: "",
         seatid: [""],
-        daysofweek: ["Monday"],
+        daysofweek: [day],
       },
-    ])
+    ]);
+    
+    // 确保选中了这一天
+    setSelectedDay(day);
   }
 
-  const updateReservation = (index: number, updatedReservation: any) => {
-    const newReservations = [...value]
-    newReservations[index] = updatedReservation
-    onChange(newReservations)
+  const updateReservation = (index: number, updatedReservation: ReservationItem) => {
+    const newReservations = [...value];
+    
+    // 找到要更新的原始预约的实际索引
+    const allIndices = value.map((_, i) => i);
+    const dayIndices = allIndices.filter(i => {
+      const item = value[i];
+      return selectedDay ? item.daysofweek.includes(selectedDay) : true;
+    });
+    
+    const actualIndex = dayIndices[index];
+    
+    if (actualIndex !== undefined) {
+      newReservations[actualIndex] = updatedReservation;
+      onChange(newReservations);
+    }
   }
 
-  const removeReservation = (index: number) => {
-    const newReservations = [...value]
-    newReservations.splice(index, 1)
-    onChange(newReservations)
+  const removeReservation = (dayIndex: number) => {
+    // 找到要删除的预约的实际索引
+    const allIndices = value.map((_, i) => i);
+    const dayIndices = allIndices.filter(i => {
+      const item = value[i];
+      return selectedDay ? item.daysofweek.includes(selectedDay) : true;
+    });
+    
+    const actualIndex = dayIndices[dayIndex];
+    
+    if (actualIndex !== undefined) {
+      const newReservations = [...value];
+      newReservations.splice(actualIndex, 1);
+      onChange(newReservations);
+    }
   }
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-center mb-4">
         <h3 className="text-sm font-medium flex items-center">
           <span className="mr-1">📅</span> {t("reservation-schedule")}
         </h3>
@@ -162,6 +182,38 @@ function ReservationEditor({ value, onChange }: ReservationEditorProps) {
           <PlusCircle className="h-4 w-4 mr-2" />
           {t("add-reservation")}
         </Button>
+      </div>
+
+      {/* 星期选择按钮 */}
+      <div className="mb-6">
+        <Label className="text-sm font-medium mb-2 block">{t("days-of-week")}</Label>
+        <div className="flex flex-wrap gap-2">
+          {DAYS_OF_WEEK.map((day) => {
+            const reservationsCount = getReservationsForDay(day).length;
+            const isActive = selectedDay === day;
+            
+            return (
+              <Button
+                key={day}
+                type="button"
+                variant={isActive ? "default" : "outline"}
+                className={`relative h-12 min-w-[6rem] px-6 text-base ${
+                  isActive
+                    ? "bg-[#0071e3] hover:bg-[#0077ED] text-white dark:bg-[#0077ED] dark:hover:bg-[#0071e3]"
+                    : "dark:border-gray-600 dark:text-gray-300"
+                }`}
+                onClick={() => setSelectedDay(isActive ? null : day)}
+              >
+                {DAY_TRANSLATIONS[day] || day.substring(0, 3)}
+                {reservationsCount > 0 && (
+                  <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center">
+                    {reservationsCount}
+                  </span>
+                )}
+              </Button>
+            );
+          })}
+        </div>
       </div>
 
       <AnimatePresence>
@@ -177,23 +229,68 @@ function ReservationEditor({ value, onChange }: ReservationEditorProps) {
               {t("add-first-reservation")}
             </Button>
           </motion.div>
-        ) : (
-          value.map((reservation, index) => (
+        ) : selectedDay ? (
+          // 显示选中星期的预约
+          getReservationsForDay(selectedDay).length === 0 ? (
             <motion.div
-              key={index}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.2 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="text-center py-8 bg-[#f5f5f7] dark:bg-gray-900 rounded-lg"
             >
-              <ReservationItem
-                reservation={reservation}
-                onChange={(updated) => updateReservation(index, updated)}
-                onRemove={() => removeReservation(index)}
-                index={index}
-              />
+              <p className="text-gray-500 dark:text-gray-400">
+                {t("no-reservations-for-day").replace("{day}", selectedDay)}
+              </p>
+              <Button variant="link" onClick={addReservation} className="text-[#0071e3] dark:text-[#5ac8fa] mt-2">
+                {t("add-reservation-for-day").replace("{day}", selectedDay)}
+              </Button>
             </motion.div>
-          ))
+          ) : (
+            getReservationsForDay(selectedDay).map((reservation, index) => (
+              <motion.div
+                key={`${selectedDay}-${index}`}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.2 }}
+              >
+                <ReservationItem
+                  reservation={reservation}
+                  onChange={(updated) => updateReservation(index, updated)}
+                  onRemove={() => removeReservation(index)}
+                  index={index}
+                  showDaysOfWeek={false} // 不需要显示星期选择
+                />
+              </motion.div>
+            ))
+          )
+        ) : (
+          // 没有选中星期时显示简要统计信息
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="text-center py-8 bg-[#f5f5f7] dark:bg-gray-900 rounded-lg"
+          >
+            <p className="text-gray-500 dark:text-gray-400">{t("select-day-to-view")}</p>
+            <div className="flex flex-wrap justify-center gap-3 mt-4">
+              {DAYS_OF_WEEK.map(day => {
+                const count = getReservationsForDay(day).length;
+                if (count === 0) return null;
+                
+                return (
+                  <Button 
+                    key={day} 
+                    variant="outline" 
+                    className="h-12 min-w-[6rem] px-6 text-base dark:border-gray-600 dark:text-gray-300"
+                    onClick={() => setSelectedDay(day)}
+                  >
+                    {DAY_TRANSLATIONS[day] || day.substring(0, 3)}: {count} {count === 1 ? t("reservation") : t("reservations")}
+                  </Button>
+                );
+              })}
+            </div>
+          </motion.div>
         )}
       </AnimatePresence>
     </div>
@@ -205,9 +302,10 @@ interface ReservationItemProps {
   onChange: (updated: ReservationItem) => void
   onRemove: () => void
   index: number
+  showDaysOfWeek?: boolean
 }
 
-function ReservationItem({ reservation, onChange, onRemove, index }: ReservationItemProps) {
+function ReservationItem({ reservation, onChange, onRemove, index, showDaysOfWeek = true }: ReservationItemProps) {
   const { t } = useLanguage()
 
   const updateField = (field: string, value: any) => {
@@ -370,27 +468,28 @@ function ReservationItem({ reservation, onChange, onRemove, index }: Reservation
           </div>
         </div>
 
-        <div>
-          <Label className="text-sm">{t("days-of-week")}</Label>
-          <div className="flex flex-wrap gap-2 mt-2">
-            {DAYS_OF_WEEK.map((day) => (
-              <Button
-                key={day}
-                type="button"
-                variant={reservation.daysofweek.includes(day) ? "default" : "outline"}
-                size="sm"
-                className={
-                  reservation.daysofweek.includes(day)
-                    ? "bg-[#0071e3] hover:bg-[#0077ED] text-white dark:bg-[#0077ED] dark:hover:bg-[#0071e3]"
-                    : "dark:border-gray-600 dark:text-gray-300"
-                }
-                onClick={() => toggleDay(day)}
-              >
-                {day.substring(0, 3)}
-              </Button>
-            ))}
+        {showDaysOfWeek && (
+          <div>
+            <Label className="text-sm">{t("days-of-week")}</Label>
+            <div className="flex flex-wrap gap-2 mt-2">
+              {DAYS_OF_WEEK.map((day) => (
+                <Button
+                  key={day}
+                  type="button"
+                  variant={reservation.daysofweek.includes(day) ? "default" : "outline"}
+                  className={`h-12 min-w-[6rem] px-6 text-base ${
+                    reservation.daysofweek.includes(day)
+                      ? "bg-[#0071e3] hover:bg-[#0077ED] text-white dark:bg-[#0077ED] dark:hover:bg-[#0071e3]"
+                      : "dark:border-gray-600 dark:text-gray-300"
+                  }`}
+                  onClick={() => toggleDay(day)}
+                >
+                  {DAY_TRANSLATIONS[day] || day.substring(0, 3)}
+                </Button>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
       </CardContent>
     </Card>
   )
