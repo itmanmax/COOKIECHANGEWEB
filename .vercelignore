@@ -1,0 +1,2 @@
+# 忽略有类型问题的文件
+components/ui/sidebar.tsx 

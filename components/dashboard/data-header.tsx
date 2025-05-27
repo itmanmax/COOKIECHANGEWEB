@@ -101,7 +101,7 @@ export function DataHeader() {
         <div className="flex-initial">
           {/* 动态生成的更新按钮 */}
           <div className="transform scale-[1.5]">
-            <UpdateButtons />
+          <UpdateButtons />
           </div>
         </div>
 
