@@ -70,45 +70,48 @@ export function DataHeader() {
 
   return (
     <motion.div
-      className={`sticky top-0 z-10 backdrop-blur-lg mb-8 py-6 -mx-4 px-4 transition-all duration-300 ${
+      className={`sticky top-0 z-10 backdrop-blur-lg mb-2 py-2 -mx-4 px-4 transition-all duration-300 ${
         scrolled ? "bg-white/80 dark:bg-gray-900/80 shadow-sm" : "bg-transparent"
       }`}
       animate={{
-        height: scrolled ? 70 : 100,
-        paddingTop: scrolled ? 16 : 24,
-        paddingBottom: scrolled ? 16 : 24,
+        height: scrolled ? 44 : 56,
+        paddingTop: scrolled ? '8px' : '12px',
+        paddingBottom: scrolled ? '8px' : '12px',
       }}
     >
-      <div className="container mx-auto max-w-5xl flex justify-between items-center">
-        <div className="flex items-center gap-3 flex-wrap">
-          <motion.h1
-            className="text-3xl font-semibold bg-gradient-to-r from-[#0071e3] to-[#5ac8fa] dark:from-[#0077ED] dark:to-[#5ac8fa] bg-clip-text text-transparent flex items-center"
-            animate={{
-              fontSize: scrolled ? "1.75rem" : "2rem",
-            }}
-          >
-            <span className="mr-2">✨</span> {t("data-management")}
-          </motion.h1>
-
+      <div className="container mx-auto max-w-[1500px] flex justify-between items-center">
+        {/* Left Section */}
+        <div className="flex-1 flex items-center gap-4 flex-wrap justify-start">
+          {/* Placeholder Logo - Replace with your actual logo */}
+          <div className="text-xl font-bold text-[#0071e3] dark:text-[#5ac8fa]">
+            ✨ 数据管理
+          </div>
           {/* 通知信息按钮 */}
           <Button 
             variant="outline" 
             size="sm" 
-            className="ml-2 h-8 px-2 text-xs border-[#0071e3]/30 dark:border-[#5ac8fa]/30 text-[#0071e3] dark:text-[#5ac8fa]"
+            className="h-7 px-2 text-xs border-[#0071e3]/30 dark:border-[#5ac8fa]/30 text-[#0071e3] dark:text-[#5ac8fa]"
             onClick={() => setInfoDialogOpen(true)}
           >
-            <Info className="h-3.5 w-3.5 mr-1" /> 通知设置
+            <Info className="h-3 w-3 mr-1" /> 通知设置
           </Button>
-
-          {/* 动态生成的更新按钮 */}
-          <UpdateButtons />
         </div>
 
-        <div className="flex items-center gap-2">
+        {/* Center Section */}
+        <div className="flex-initial">
+          {/* 动态生成的更新按钮 */}
+          <div className="transform scale-[1.5]">
+            <UpdateButtons />
+          </div>
+        </div>
+
+        {/* Right Section */}
+        <div className="flex-1 flex items-center gap-2 justify-end">
+          {/* Language Dropdown and Theme Button were here, ensure they are retained */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="icon" className="h-9 w-9 rounded-full">
-                <Globe className="h-4 w-4" />
+              <Button variant="outline" size="icon" className="h-8 w-8 rounded-full">
+                <Globe className="h-3.5 w-3.5" />
                 <span className="sr-only">Toggle language</span>
               </Button>
             </DropdownMenuTrigger>
@@ -128,9 +131,9 @@ export function DataHeader() {
             variant="outline"
             size="icon"
             onClick={() => setTheme(theme === "light" ? "dark" : "light")}
-            className="h-9 w-9 rounded-full"
+            className="h-8 w-8 rounded-full"
           >
-            {theme === "light" ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
+            {theme === "light" ? <Moon className="h-3.5 w-3.5" /> : <Sun className="h-3.5 w-3.5" />}
             <span className="sr-only">Toggle theme</span>
           </Button>
         </div>
@@ -141,7 +144,7 @@ export function DataHeader() {
         <DialogContent className="dark:bg-gray-800 dark:text-white">
           <DialogHeader>
             <DialogTitle className="flex items-center">
-              <Bell className="h-5 w-5 mr-2 text-[#0071e3] dark:text-[#5ac8fa]" /> 
+              <Bell className="h-5 w-5 mr-1 text-[#0071e3] dark:text-[#5ac8fa]" /> 
               通知设置信息
             </DialogTitle>
             <DialogDescription className="dark:text-gray-400">

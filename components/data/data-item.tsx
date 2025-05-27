@@ -102,7 +102,10 @@ export function DataItem({ data, onUpdate, onDelete }: DataItemProps) {
                 variant="ghost"
                 size="sm"
                 className="text-gray-500 hover:text-[#0071e3] dark:text-gray-400 dark:hover:text-[#5ac8fa]"
-                onClick={() => setIsEditModalOpen(true)}
+                onClick={() => {
+                  console.log("打开编辑模态框，数据ID:", data.id);
+                  setIsEditModalOpen(true);
+                }}
               >
                 <Edit className="h-4 w-4" />
               </Button>

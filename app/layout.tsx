@@ -2,6 +2,8 @@ import "@/styles/globals.css"
 import { LanguageProvider } from "@/components/language-provider"
 import { ThemeProvider } from "@/components/theme-provider"
 import { StagewiseToolbar } from '@stagewise/toolbar-next'
+import { Toaster } from "@/components/ui/toaster"
+import { NotificationBanner } from "@/components/ui/notification-banner"
 
 export const metadata = {
   title: "数据管理系统",
@@ -31,7 +33,17 @@ export default function RootLayout({
         )}
         <ThemeProvider>
           <LanguageProvider>
-            {children}
+            <div className="min-h-screen flex flex-col">
+              <div className="sticky top-0 z-50 bg-white dark:bg-gray-950 shadow-sm">
+                <div className="container mx-auto px-4 py-2">
+                  <NotificationBanner />
+                </div>
+              </div>
+              <div className="flex-1 container mx-auto px-4 py-4">
+                {children}
+              </div>
+            </div>
+            <Toaster />
           </LanguageProvider>
         </ThemeProvider>
       </body>

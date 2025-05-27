@@ -14,7 +14,10 @@ export type TranslationKey =
   | "view-cookie-desc" | "english" | "chinese" | "select-user" | "select-user-description"
   | "no-users-found" | "back-to-users" | "user-dashboard" | "logout" | "reservations"
   | "no-reservations-for-day" | "add-reservation-for-day" | "select-day-to-view"
-  | "user-has-no-data" | "no-data-available" | "error-loading-data" | "could-not-fetch-user-data";
+  | "user-has-no-data" | "no-data-available" | "error-loading-data" | "could-not-fetch-user-data"
+  | "success" | "error" | "reservation-data-updated" | "reservation-added" | "reservation-updated"
+  | "reservation-removed" | "property-added" | "property-updated" | "property-removed"
+  | "failed-to-add-property" | "failed-to-update-property" | "notification" | "loading-notice-error";
 
 // 定义翻译记录的类型，包含索引签名
 export type TranslationRecord = Record<TranslationKey, string> & {
@@ -130,7 +133,24 @@ export const translations: TranslationsType = {
     "user-has-no-data": "This user has no data records",
     "no-data-available": "No Data Available",
     "error-loading-data": "Error Loading Data",
-    "could-not-fetch-user-data": "Could not fetch user data"
+    "could-not-fetch-user-data": "Could not fetch user data",
+    
+    // Toast消息
+    "success": "Success",
+    "error": "Error",
+    "reservation-data-updated": "Reservation data has been updated successfully",
+    "reservation-added": "New reservation has been added",
+    "reservation-updated": "Reservation has been updated",
+    "reservation-removed": "Reservation has been removed",
+    "property-added": "Property has been added",
+    "property-updated": "Property has been updated",
+    "property-removed": "Property has been removed",
+    "failed-to-add-property": "Failed to add property",
+    "failed-to-update-property": "Failed to update property",
+    
+    // 通知横幅
+    "notification": "Notification",
+    "loading-notice-error": "Error loading notification content"
   },
   zh: {
     // 页眉
@@ -232,6 +252,23 @@ export const translations: TranslationsType = {
     "user-has-no-data": "该用户没有数据记录",
     "no-data-available": "没有可用数据",
     "error-loading-data": "加载数据出错",
-    "could-not-fetch-user-data": "无法获取用户数据"
+    "could-not-fetch-user-data": "无法获取用户数据",
+    
+    // Toast消息
+    "success": "成功",
+    "error": "错误",
+    "reservation-data-updated": "预约数据已成功更新",
+    "reservation-added": "已添加新预约",
+    "reservation-updated": "预约已更新",
+    "reservation-removed": "预约已移除",
+    "property-added": "属性已添加",
+    "property-updated": "属性已更新",
+    "property-removed": "属性已移除",
+    "failed-to-add-property": "添加属性失败",
+    "failed-to-update-property": "更新属性失败",
+    
+    // 通知横幅
+    "notification": "通知",
+    "loading-notice-error": "加载通知内容出错"
   },
 }

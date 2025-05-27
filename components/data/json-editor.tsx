@@ -10,6 +10,7 @@ import { PlusCircle, Trash2, Plus, Minus } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useLanguage } from "@/components/language-provider"
+import { useToast } from "@/hooks/use-toast"
 
 interface JsonEditorProps {
   value: any
@@ -61,10 +62,16 @@ const TIME_OPTIONS = [
 export function JsonEditor({ value, onChange }: JsonEditorProps) {
   const [activeTab, setActiveTab] = useState("reserve")
   const { t } = useLanguage()
+  const { toast } = useToast()
 
   const handleReserveChange = (reserve: ReservationItem[]) => {
     // 直接使用传入的数据，不进行转换
     onChange({ ...value, reserve });
+    toast({
+      title: t("success"),
+      description: t("reservation-data-updated"),
+      variant: "default",
+    });
   }
 
   const getReserveData = () => {
@@ -98,6 +105,7 @@ interface ReservationEditorProps {
 
 function ReservationEditor({ value, onChange }: ReservationEditorProps) {
   const { t } = useLanguage()
+  const { toast } = useToast()
   // 当前选中的星期
   const [selectedDay, setSelectedDay] = useState<string | null>(null)
 
@@ -130,6 +138,12 @@ function ReservationEditor({ value, onChange }: ReservationEditorProps) {
     
     // 确保选中了这一天
     setSelectedDay(day);
+    
+    toast({
+      title: t("success"),
+      description: t("reservation-added"),
+      variant: "default",
+    });
   }
 
   const updateReservation = (index: number, updatedReservation: ReservationItem) => {
@@ -147,6 +161,12 @@ function ReservationEditor({ value, onChange }: ReservationEditorProps) {
     if (actualIndex !== undefined) {
       newReservations[actualIndex] = updatedReservation;
       onChange(newReservations);
+      
+      toast({
+        title: t("success"),
+        description: t("reservation-updated"),
+        variant: "default",
+      });
     }
   }
 
@@ -164,6 +184,12 @@ function ReservationEditor({ value, onChange }: ReservationEditorProps) {
       const newReservations = [...value];
       newReservations.splice(actualIndex, 1);
       onChange(newReservations);
+      
+      toast({
+        title: t("success"),
+        description: t("reservation-removed"),
+        variant: "default",
+      });
     }
   }
 
@@ -175,11 +201,11 @@ function ReservationEditor({ value, onChange }: ReservationEditorProps) {
         </h3>
         <Button
           variant="outline"
-          size="sm"
+          size="lg"
           onClick={addReservation}
-          className="text-[#0071e3] dark:text-[#5ac8fa] border-[#0071e3]/30 dark:border-[#5ac8fa]/30 hover:bg-[#0071e3]/10 dark:hover:bg-[#5ac8fa]/10"
+          className="text-[#0071e3] dark:text-[#5ac8fa] border-[#0071e3]/30 dark:border-[#5ac8fa]/30 hover:bg-[#0071e3]/10 dark:hover:bg-[#5ac8fa]/10 h-12 px-6 text-base"
         >
-          <PlusCircle className="h-4 w-4 mr-2" />
+          <PlusCircle className="h-5 w-5 mr-2" />
           {t("add-reservation")}
         </Button>
       </div>
@@ -458,11 +484,10 @@ function ReservationItem({ reservation, onChange, onRemove, index, showDaysOfWee
             ))}
             <Button
               variant="outline"
-              size="sm"
               onClick={addSeatId}
-              className="mt-2 dark:border-gray-600 dark:text-gray-300"
+              className="mt-2 dark:border-gray-600 dark:text-gray-300 h-10 px-4"
             >
-              <Plus className="h-4 w-4 mr-2" />
+              <Plus className="h-5 w-5 mr-2" />
               {t("add-seat")}
             </Button>
           </div>
@@ -505,6 +530,7 @@ function OtherPropertiesEditor({ value, onChange, excludeKeys }: OtherProperties
   const [newKey, setNewKey] = useState("")
   const [newValue, setNewValue] = useState("")
   const { t } = useLanguage()
+  const { toast } = useToast()
 
   const addProperty = () => {
     if (!newKey.trim()) return
@@ -524,8 +550,19 @@ function OtherPropertiesEditor({ value, onChange, excludeKeys }: OtherProperties
 
       setNewKey("")
       setNewValue("")
+      
+      toast({
+        title: t("success"),
+        description: t("property-added"),
+        variant: "default",
+      });
     } catch (error) {
       console.error("Error adding property:", error)
+      toast({
+        title: t("error"),
+        description: t("failed-to-add-property"),
+        variant: "destructive",
+      });
     }
   }
 
@@ -541,8 +578,19 @@ function OtherPropertiesEditor({ value, onChange, excludeKeys }: OtherProperties
       const newObj = { ...value }
       newObj[key] = parsedValue
       onChange(newObj)
+      
+      toast({
+        title: t("success"),
+        description: t("property-updated"),
+        variant: "default",
+      });
     } catch (error) {
       console.error("Error updating property:", error)
+      toast({
+        title: t("error"),
+        description: t("failed-to-update-property"),
+        variant: "destructive",
+      });
     }
   }
 
@@ -550,6 +598,12 @@ function OtherPropertiesEditor({ value, onChange, excludeKeys }: OtherProperties
     const newObj = { ...value }
     delete newObj[key]
     onChange(newObj)
+    
+    toast({
+      title: t("success"),
+      description: t("property-removed"),
+      variant: "default",
+    });
   }
 
   const getEditableProperties = () => {

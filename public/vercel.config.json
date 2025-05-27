@@ -19,5 +19,6 @@
       "https://api.example.com/easystack/update"
     ]
   },
+  "notice": "请编辑完数据之后点击更新按钮，今天约明天的座位",
   "updateMode": "easyStack"
 } 

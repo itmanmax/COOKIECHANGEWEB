@@ -205,23 +205,36 @@ export async function updateData(
     cookie: string
   },
 ) {
-  console.log("API updateData 调用开始，ID:", id, "参数:", data);
+  console.log("API updateData 调用开始，ID:", id, "参数:", JSON.stringify(data).substring(0, 100) + "...");
+  
+  if (!id) {
+    console.error("更新数据失败：提供的ID为空");
+    throw new Error("无法更新数据：ID不能为空");
+  }
   
   try {
-    const response = await fetch(`${API_BASE_URL}/admin/update/${id}`, {
+    const url = `${API_BASE_URL}/admin/update/${id}`;
+    console.log("请求URL:", url);
+    
+    // 准备请求体
+    const requestBody = JSON.stringify(data);
+    console.log("请求体长度:", requestBody.length, "字节");
+    
+    const response = await fetch(url, {
       method: "PUT",
       headers: {
         Authorization: `Bearer ${AUTH_TOKEN}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(data),
+      body: requestBody,
     });
 
     console.log("更新API响应状态:", response.status, response.statusText);
     
     if (!response.ok) {
-      console.error("更新API调用失败:", response.status, response.statusText);
-      throw new Error(`更新数据失败: ${response.statusText} (${response.status})`);
+      const errorText = await response.text();
+      console.error("更新API调用失败:", response.status, response.statusText, "错误详情:", errorText);
+      throw new Error(`更新数据失败: ${response.statusText} (${response.status}) - ${errorText}`);
     }
 
     const result = await response.json();

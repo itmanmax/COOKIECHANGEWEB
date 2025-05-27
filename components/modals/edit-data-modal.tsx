@@ -75,9 +75,16 @@ export function EditDataModal({ isOpen, onClose, data, onDataUpdated }: EditData
 
   useEffect(() => {
     if (data) {
-      setJsonData(data.testjson)
-      setCookieData(data.cookie)
+      console.log("编辑模态框：数据已加载", data.id, data);
+      
+      if (!data.id) {
+        console.warn("警告：加载的数据缺少ID字段，这将导致更新API调用失败");
+      }
+      
+      setJsonData(data.testjson || { reserve: [] });
+      setCookieData(data.cookie || "");
     } else {
+      console.log("编辑模态框：未接收到数据");
       setJsonData({ reserve: [] });
       setCookieData("");
     }
@@ -94,21 +101,33 @@ export function EditDataModal({ isOpen, onClose, data, onDataUpdated }: EditData
   }
 
   const handleClose = () => {
-    onClose()
+    console.log("关闭编辑模态框");
+    resetForm(); // 重置表单状态
+    onClose();
   }
 
   const handleSubmit = async () => {
     if (!data) {
-      toast({ title: "Error", description: "No data to update.", variant: "destructive" });
+      toast({ title: "错误", description: "没有数据可更新。", variant: "destructive" });
+      console.error("无法更新数据：数据对象为空");
       return;
     }
+
+    const dataId = data.id;
+    if (!dataId) {
+      toast({ title: "错误", description: "数据ID不存在，无法更新。", variant: "destructive" });
+      console.error("无法更新数据：ID不存在", data);
+      return;
+    }
+    
     console.log("更新按钮被点击...");
+    console.log("准备更新数据，ID:", dataId);
     
     try {
       setIsSubmitting(true);
-      console.log("正在调用API更新数据...", data.id);
+      console.log("正在调用API更新数据...", dataId);
       
-      await updateData(data.id, {
+      await updateData(dataId, {
         testjson: jsonData,
         cookie: cookieData || "default_cookie",
       });
@@ -126,7 +145,7 @@ export function EditDataModal({ isOpen, onClose, data, onDataUpdated }: EditData
 
       toast({
         title: "数据更新成功",
-        description: `已更新ID为: ${data.id} 的数据`,
+        description: `已更新ID为: ${dataId} 的数据`,
       });
 
       onClose();

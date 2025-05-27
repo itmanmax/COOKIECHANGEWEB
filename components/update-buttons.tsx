@@ -92,10 +92,10 @@ export function UpdateButtons() {
             variant="outline"
             disabled={loading[type]}
             onClick={() => handleUpdate(type)}
-            className="border-green-500/30 text-green-600 dark:text-green-400 hover:bg-accent hover:text-accent-foreground"
+            className="h-7 py-0 px-2 border-green-500/30 text-green-600 dark:text-green-400 hover:bg-accent hover:text-accent-foreground"
           >
             <RefreshCw
-              className={`h-3.5 w-3.5 mr-1 ${loading[type] ? "animate-spin" : ""}`}
+              className={`h-3 w-3 mr-1 ${loading[type] ? "animate-spin" : ""}`}
             />
             {type.toUpperCase()} 更新
           </Button>

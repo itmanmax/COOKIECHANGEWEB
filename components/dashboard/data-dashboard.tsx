@@ -60,26 +60,38 @@ export function DataDashboard({ userId, onBackToUsers }: DataDashboardProps) {
         if (userData.testjson || userData.cookie) {
           // 直接格式：API返回的数据对象本身就是我们需要的
           console.log(`设置用户数据(直接格式):`, userData);
-          setData(userData);
+          // 确保数据对象中有id字段，如果没有则添加
+          const processedData: DataEntry = {
+            ...userData,
+            id: userData.id || userId, // 如果API返回的数据没有id字段，则使用userId作为id
+          };
+          console.log("处理后的数据（添加ID）:", processedData);
+          setData(processedData);
           
-          if (userData.id && userData.created_at) {
+          if (processedData.created_at) {
             // 检查数据更新状态并发送通知
             await checkAndSendUpdateNotice(
-              userData.id, 
-              userData.created_at, 
-              userData.updated_at || userData.created_at
+              processedData.id, 
+              processedData.created_at, 
+              processedData.updated_at || processedData.created_at
             );
           }
         } else if (userData.data && (userData.data.testjson || userData.data.cookie)) {
           // 嵌套格式：数据包装在data属性中
           console.log(`设置用户数据(嵌套格式):`, userData.data);
-          setData(userData.data);
+          // 确保数据对象中有id字段，如果没有则添加
+          const processedData: DataEntry = {
+            ...userData.data,
+            id: userData.data.id || userId, // 如果API返回的数据没有id字段，则使用userId作为id
+          };
+          console.log("处理后的数据（嵌套格式，添加ID）:", processedData);
+          setData(processedData);
           
-          if (userData.data.id && userData.data.created_at) {
+          if (processedData.created_at) {
             await checkAndSendUpdateNotice(
-              userData.data.id, 
-              userData.data.created_at, 
-              userData.data.updated_at || userData.data.created_at
+              processedData.id, 
+              processedData.created_at, 
+              processedData.updated_at || processedData.created_at
             );
           }
         } else {
@@ -149,18 +161,12 @@ export function DataDashboard({ userId, onBackToUsers }: DataDashboardProps) {
   }
   
   const getUserDisplayName = () => {
-    if (!data) return userId;
-    if (data.testjson && data.testjson.reserve && data.testjson.reserve.length > 0) {
-      return data.testjson.reserve[0].username;
-    }
-    if (data.testjson && data.testjson.name) {
-      return data.testjson.name;
-    }
-    return data.id;
+    // 无论是否有data，都优先返回userId
+    return userId || "未知ID";
   };
 
   return (
-    <div className="container mx-auto py-8 px-4 max-w-5xl">
+    <div className="container mx-auto py-8 px-4 max-w-[1500px]">
       <DataHeader />
 
       <div className="flex justify-between items-center mb-6">
@@ -172,13 +178,13 @@ export function DataDashboard({ userId, onBackToUsers }: DataDashboardProps) {
           )}
           <h2 className="text-2xl font-medium text-gray-800 dark:text-gray-200 flex items-center">
             <Database className="mr-2 h-5 w-5 text-[#0071e3] dark:text-[#0077ED]" />
-            {t("user-dashboard")} {data ? `: ${getUserDisplayName()}` : ''}
+            {t("user-dashboard")} {userId ? `: ${userId}` : ''}
           </h2>
         </div>
         <div className="flex gap-3">
           <Button
             variant="outline"
-            size="sm"
+            size="lg"
             className="flex items-center gap-2 dark:border-gray-700 dark:text-gray-300"
             onClick={loadData}
             disabled={isRefreshing}
