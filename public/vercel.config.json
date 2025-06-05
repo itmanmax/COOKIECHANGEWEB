@@ -1,6 +1,6 @@
 {
   "notification": {
-    "enabled": true,
+    "enabled": false,
     "noticeDays": 14,
     "qmsgKey": "your_qmsg_key_here",
     "qqNumber": "your_qq_number_here"

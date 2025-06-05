@@ -3,18 +3,18 @@
       "enabled": false,
       "noticeDays": 14,
       "qmsgKey": "111",
-      "qqNumber": "your_qq_number_here"
+      "qqNumber": "2577870094"
     },
     "updateAPI": {
       "max": [
-        "http://homelibrary-max3.maxtral.fun/update/test.php",
-        "http://homezzw.maxtral.fun/updatadata/api.php"
+        "https://home2.maxtrnn.top/updatadata/api.php",
+        "https://home3.maxtrnn.top/update/api.php"
       ],
       "zzw": [
         "http://47.122.73.216:1225/update/updatadate/api.php"
       ],
       "lzy": [
-        "https://home.maxtral.fun/plugin/updatadate/api.php"
+        "https://home.maxtrnn.top/plugin/updatadate/api.php"
       ]
     },
     "updateMode": "easyStack"
